@@ -1,4 +1,3 @@
 include setup.py
 include README.md
-include magics/__init__.py
-include magics/getconfig.py
+include vvpmagics/*.py

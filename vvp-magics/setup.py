@@ -1,7 +1,7 @@
-DESCRIPTION         = "vvpMagic: Magics to connect to VVP"
-NAME                = "vvpmagic"
+DESCRIPTION         = "vvpMagics: Magics to connect to VVP"
+NAME                = "vvpmagics"
 VERSION             = '0.0.1'
-PACKAGES            = ['magics']
+PACKAGES            = ['vvpmagics']
 AUTHOR              = "Ververica"
 AUTHOR_EMAIL        = "ververica@ververica.com"
 URL                 = 'https://github.com/dataArtisans/vvp-jupyter'
