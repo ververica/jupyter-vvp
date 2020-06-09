@@ -1,0 +1,2 @@
+requests~=2.23.0
+ipython~=7.15.0
