@@ -14,7 +14,7 @@ in the same folder as `setup.py`.
 The package can be installed with `pip3 install ./dist/vvpmagics-x.y.z.tar.gz`.
 
 
-## Using
+## Sessions
 
 From within IPython (`ipython3`) or an IPython3 kernel in a local Jupyter instance,
 run
@@ -30,4 +30,39 @@ will show help text including how to specify the namespace and port.
 If a namespace is specified then just that namespace will be called.
 The request URL used is shown.
 
-At present this is just a simple HTTP request that displays the text response that it receives.
+```
+mySession = %vvp_connect localhost -n default
+```
+will assign the session object to the given variable.
+
+It is possible to run 
+```
+mySession.get_namespace()
+```
+
+## Catalog SQL requests
+```
+%%execute_catalog_statement mySession 
+   ...: CREATE TABLE `testTable2` ( 
+   ...:   id bigint 
+   ...:   -- Watermark definition, here for a timestamp column 'ts' 
+   ...:   -- WATERMARK FOR ts AS ts - INTERVAL '1' MINUTE 
+   ...: ) 
+   ...: -- Free text comment 
+   ...: COMMENT '' 
+   ...: WITH ( 
+   ...:   -- Kafka connector configuration. See documentation for all configuration options. 
+   ...:     'connector.type' = 'kafka', 
+   ...:     'connector.version' = 'universal', 
+   ...:     'connector.topic' = 'testTopic', 
+   ...:     'connector.properties.bootstrap.servers' = 'localhost:9092', 
+   ...:     'connector.properties.group.id' = '...', 
+   ...:     'connector.startup-mode' = 'earliest-offset' 
+   ...: ) 
+
+```
+This will return the HTTP response code from the back end.
+
+Note: the `mySession` variable is actually referenced 
+by treating its input to the magic as a string 
+and finding the object from the local user scope by name.
