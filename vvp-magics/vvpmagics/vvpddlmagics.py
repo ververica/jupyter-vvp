@@ -17,6 +17,8 @@ class VvpDdlMagics(Magics):
         catalog_endpoint = "/catalog/v1beta1/namespaces/{}:execute" \
             .format(session.get_namespace())
         if cell:
-            return session.submit_post_request(catalog_endpoint, cell)
+            response = session.submit_post_request(catalog_endpoint, cell)
+            print(response)
+            print(response.text)
         else:
             print("Empty cell: doing nothing.")
