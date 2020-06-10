@@ -37,6 +37,3 @@ class VvpMagics(Magics):
         namespaces = json.loads(request.text)
         return namespaces
 
-ipython = get_ipython()
-
-
