@@ -16,21 +16,24 @@ class VvpSession:
         """
 
         self.vvpBaseUrl = vvpbaseurl
+        if not namespace:
+            raise Exception("Trying to build a session with an empty namespace.")
         if not self._is_valid_namespace(namespace):
             raise Exception("Invalid namespace specified.")
         self.namespace = namespace
 
     def test_connection(self):
-        return self._is_valid_namespace(self.namespace)
+        return self._get_namespace(self.namespace)
 
     def _is_valid_namespace(self, namespace):
         url = self.vvpBaseUrl + self.namespacesEndpoint + "/{}".format(namespace)
-        self._get_namespace(url)
-        return True
-
-    @staticmethod
-    def _get_namespace(url):
         print("Requesting namespaces from {}...".format(url))
+        request = requests.get(url)
+        validity_from_statuscodes = {200: True, 404: False}
+        return validity_from_statuscodes[request.status_code]
+
+    def _get_namespace(self,namespace):
+        url = self.vvpBaseUrl + self.namespacesEndpoint + "/{}".format(namespace)
         request = requests.get(url)
         namespace = (json.loads(request.text))["namespace"]
         return namespace
