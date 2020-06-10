@@ -1,8 +1,10 @@
 import json
-
-from IPython.core.magic import (Magics, magics_class, line_magic)
 import requests
+from IPython import get_ipython
+from IPython.core.magic import (Magics, magics_class, line_magic)
 from IPython.core.magic_arguments import magic_arguments, argument, parse_argstring
+
+from vvpmagics.vvpsession import VvpSession
 
 print('Loading vvp-vvpmagics.')
 
@@ -10,7 +12,7 @@ print('Loading vvp-vvpmagics.')
 @magics_class
 class VvpMagics(Magics):
     vvpBaseUrl = ""
-    namespacesEndpoint = "/namespaces/v1/namespaces"
+    namespacesEndpoint = VvpSession.namespacesEndpoint
 
     @line_magic
     @magic_arguments()
@@ -24,21 +26,17 @@ class VvpMagics(Magics):
         self.vvpBaseUrl = "http://{}:{}".format(hostname, port)
 
         if args.namespace:
-            return self._get_namespace(args.namespace)
+            return VvpSession(self.vvpBaseUrl, args.namespace)
         else:
-            return self._get_namespaces()
+            return self._get_namespaces(self.vvpBaseUrl)
 
-    def _get_namespaces(self):
-        url = self.vvpBaseUrl + self.namespacesEndpoint
-        return self._get_NamespaceResponse(url)
-
-    def _get_namespace(self, namespace):
-        url = self.vvpBaseUrl + self.namespacesEndpoint + "/{}".format(namespace)
-        return self._get_NamespaceResponse(url)
-
-    @staticmethod
-    def _get_NamespaceResponse(url):
+    def _get_namespaces(self, url):
+        url = url + self.namespacesEndpoint
         print("Requesting from {}...".format(url))
         request = requests.get(url)
         namespaces = json.loads(request.text)
         return namespaces
+
+ipython = get_ipython()
+
+
