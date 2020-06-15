@@ -25,7 +25,7 @@ class VvpSession:
     def get_namespace(self):
         return self._namespace
 
-    def get_namespaceinfo(self):
+    def get_namespace_info(self):
         print("Getting information for namespace {}."
               .format(self._namespace))
         return self._get_namespace(self._namespace)
