@@ -4,7 +4,6 @@ from .httpsession import HttpSession
 
 
 class VvpSession:
-    _vvpBaseUrl = ""
     _namespace = ""
     namespacesEndpoint = "/namespaces/v1/namespaces"
 
@@ -15,20 +14,15 @@ class VvpSession:
         :type vvpbaseurl: string
         """
 
-        self._vvpBaseUrl = vvpbaseurl
         self._http_session = HttpSession(vvpbaseurl, None)
         if not self._is_valid_namespace(namespace):
             raise Exception("Invalid or empty namespace specified.")
         self._namespace = namespace
-        print("Constructed vvp connection to {} with namespace {}."
-              .format(self._vvpBaseUrl, self._namespace))
 
     def get_namespace(self):
         return self._namespace
 
     def get_namespace_info(self):
-        print("Getting information for namespace {}."
-              .format(self._namespace))
         return self._get_namespace(self._namespace)
 
     def _is_valid_namespace(self, namespace):
