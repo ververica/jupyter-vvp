@@ -25,5 +25,6 @@ setup(name=NAME,
       packages=PACKAGES,
       install_requires=[
           'ipython>=4.0.2',
-          'ipykernel'
+          'ipykernel',
+          'requests'
       ])
