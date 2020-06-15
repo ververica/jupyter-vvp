@@ -1,21 +1,40 @@
-from vvpmagics import VvpMagics
+import unittest
+import requests_mock
+
+from vvpmagics.vvpsession import VvpSession
 
 
-def test_get_namespace_returns_namespace():
-    namespace = "default"
-    magic_line = "localhost -n {}".format(namespace)
-    magics = VvpMagics()
+class VvpSessionTests(unittest.TestCase):
+    vvpbaseurl = "http://localhost:8080"
 
-    session = magics.connect_vvp(magic_line)
+    def test_get_namespace_returns_namespace(self):
+        namespace = "test"
 
-    assert session.get_namespace() == "default"
+        with requests_mock.Mocker() as requests_mocker:
+            requests_mocker.request(method='get', url='http://localhost:8080/namespaces/v1/namespaces', text="""
+                               { "namespaces": [{ "name": "namespaces/test" }] } 
+            """)
+            requests_mocker.request(method='get',
+                                    url='http://localhost:8080/namespaces/v1/namespaces/{}'.format(namespace), text="""
+                               { "namespace": { "name": "namespaces/test" } }
+            """)
 
+            session = VvpSession(self.vvpbaseurl, namespace)
 
-def test_get_namespace_info_returns_namespace():
-    namespace = "default"
-    magic_line = "localhost -n {}".format(namespace)
-    magics = VvpMagics()
+            assert session.get_namespace() == namespace
 
-    session = magics.connect_vvp(magic_line)
+    def test_get_namespace_info_returns_namespace(self):
+        namespace = "test"
 
-    assert session.get_namespace_info()['name'] == "namespaces/default"
+        with requests_mock.Mocker() as requests_mocker:
+            requests_mocker.request(method='get', url='http://localhost:8080/namespaces/v1/namespaces', text="""
+                               { "namespaces": [{ "name": "namespaces/test" }] } 
+            """)
+            requests_mocker.request(method='get',
+                                    url='http://localhost:8080/namespaces/v1/namespaces/{}'.format(namespace), text="""
+                               { "namespace": { "name": "namespaces/test" } }
+            """)
+
+            session = VvpSession(self.vvpbaseurl, namespace)
+
+            assert session.get_namespace_info()['name'] == "namespaces/{}".format(namespace)

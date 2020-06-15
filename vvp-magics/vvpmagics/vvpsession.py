@@ -10,11 +10,13 @@ class VvpSession:
     def __init__(self, vvpbaseurl: str, namespace: str):
         """
 
+        :type http_session: HttpSession
         :type namespace: string
         :type vvpbaseurl: string
         """
 
         self._http_session = HttpSession(vvpbaseurl, None)
+
         if not self._is_valid_namespace(namespace):
             raise Exception("Invalid or empty namespace specified.")
         self._namespace = namespace
