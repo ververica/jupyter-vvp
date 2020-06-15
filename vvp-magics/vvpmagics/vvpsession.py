@@ -1,6 +1,7 @@
 import json
 
 import requests
+from .httpsession import HttpSession
 
 
 class VvpSession:
@@ -16,6 +17,7 @@ class VvpSession:
         """
 
         self._vvpBaseUrl = vvpbaseurl
+        self._http_session = HttpSession(vvpbaseurl, None)
         if not self._is_valid_namespace(namespace):
             raise Exception("Invalid or empty namespace specified.")
         self._namespace = namespace
@@ -34,22 +36,19 @@ class VvpSession:
         if not namespace:
             return False
 
-        url = self._vvpBaseUrl + self.namespacesEndpoint + "/{}".format(namespace)
-        request = requests.get(url)
+        request = self._http_session.get(self.namespacesEndpoint + "/{}".format(namespace))
         validity_from_statuscodes = {200: True, 404: False}
         return validity_from_statuscodes[request.status_code]
 
     def _get_namespace(self, namespace):
-        url = self._vvpBaseUrl + self.namespacesEndpoint + "/{}".format(namespace)
-        request = requests.get(url)
+        request = self._http_session.get(self.namespacesEndpoint + "/{}".format(namespace))
         namespace = (json.loads(request.text))["namespace"]
         return namespace
 
     def submit_post_request(self, endpoint, requestbody):
-        url = self._vvpBaseUrl + endpoint
-        request = requests.post(
-            url=url,
-            headers={"Content-Type": "text/plain"},
+        request = self._http_session.post(
+            path=endpoint,
+            request_headers={"Content-Type": "text/plain"},
             data=requestbody
         )
         return request

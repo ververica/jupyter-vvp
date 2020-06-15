@@ -15,4 +15,4 @@ Authentication and other headers should be set during creation of the session an
 To create a http session the base url and headers should be set.
 To make a call the endpoint and data as well as additional headers can be passed, the HTTP method will be chosen by calling a function with the same name.
 
-Testing should be possible through use of requests_mock.
+Testing the http session should be possible through use of requests_mock, for tests of calling code the session itself can be mocked.
