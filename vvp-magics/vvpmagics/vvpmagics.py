@@ -17,16 +17,16 @@ class VvpMagics(Magics):
     @argument('hostname', type=str, help='Hostname')
     @argument('-p', '--port', type=str, default="8080", help='Port')
     @argument('-n', '--namespace', type=str, help='Namespace. If empty, lists all namespaces.')
-    def connect_vvp(self, hostname):
-        args = parse_argstring(self.connect_vvp, hostname)
+    def connect_vvp(self, line):
+        args = parse_argstring(self.connect_vvp, line)
         hostname = args.hostname
         port = args.port
-        vvpBaseUrl = "http://{}:{}".format(hostname, port)
+        vvp_base_url = "http://{}:{}".format(hostname, port)
 
         if args.namespace:
-            return VvpSession(vvpBaseUrl, args.namespace)
+            return VvpSession(vvp_base_url, args.namespace)
         else:
-            return self._get_namespaces(vvpBaseUrl)
+            return self._get_namespaces(vvp_base_url)
 
     def _get_namespaces(self, url):
         url = url + self.namespacesEndpoint
