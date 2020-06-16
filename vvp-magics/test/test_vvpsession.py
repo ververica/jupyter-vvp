@@ -6,8 +6,12 @@ from vvpmagics.vvpsession import VvpSession
 
 @requests_mock.Mocker()
 class VvpSessionTests(unittest.TestCase):
-    vvpbaseurl = "http://localhost:8080"
+    vvp_base_url = "http://localhost:8080"
     namespace = "test"
+
+    def setUp(self):
+        VvpSession.sessions = {}
+        VvpSession.default_session = None
 
     def test_get_namespace_returns_namespace(self, requests_mocker):
         requests_mocker.request(method='get', url='http://localhost:8080/namespaces/v1/namespaces', text="""
@@ -18,7 +22,7 @@ class VvpSessionTests(unittest.TestCase):
                            { "namespace": { "name": "namespaces/test" } }
         """)
 
-        session = VvpSession(self.vvpbaseurl, self.namespace)
+        session = VvpSession(self.vvp_base_url, self.namespace)
 
         assert session.get_namespace() == self.namespace
 
@@ -31,7 +35,7 @@ class VvpSessionTests(unittest.TestCase):
                            { "namespace": { "name": "namespaces/test" } }
         """)
 
-        session = VvpSession(self.vvpbaseurl, self.namespace)
+        session = VvpSession(self.vvp_base_url, self.namespace)
 
         assert session.get_namespace_info()['name'] == "namespaces/{}".format(self.namespace)
 
@@ -41,12 +45,23 @@ class VvpSessionTests(unittest.TestCase):
                            { "namespace": { "name": "namespaces/test" } }
         """)
 
-        first_session = VvpSession.create_session(self.vvpbaseurl, self.namespace, set_default=True)
-
-        assert first_session.get_namespace_info()['name'] == "namespaces/{}".format(self.namespace)
-        assert first_session in VvpSession.sessions
+        first_session = VvpSession.create_session(self.vvp_base_url, self.namespace, "session1", set_default=True)
+        assert first_session.get_namespace() == self.namespace
+        assert VvpSession.sessions['session1'] == first_session
         assert VvpSession.default_session == first_session
 
-        second_session = VvpSession.create_session(self.vvpbaseurl, self.namespace, set_default=False)
-        assert second_session in VvpSession.sessions
+        second_session = VvpSession.create_session(self.vvp_base_url, self.namespace, "session2", set_default=False)
+        assert VvpSession.sessions['session2'] == second_session
         assert VvpSession.default_session == first_session
+
+    def test_get_sessions(self,requests_mocker):
+
+        requests_mocker.request(method='get',
+                                url='http://localhost:8080/namespaces/v1/namespaces/{}'.format(self.namespace), text="""
+                           { "namespace": { "name": "namespaces/test" } }
+        """)
+
+        VvpSession.create_session(self.vvp_base_url, self.namespace, "session1", set_default=True)
+        sessions = VvpSession.get_sessions()
+
+        assert "session1" in sessions

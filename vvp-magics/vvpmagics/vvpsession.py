@@ -6,7 +6,7 @@ namespaces_endpoint = "/namespaces/v1/namespaces"
 
 
 class VvpSession:
-    sessions = []
+    sessions = {}
     default_session = None
 
     def __init__(self, vvp_base_url: str, namespace: str):
@@ -23,13 +23,23 @@ class VvpSession:
             raise Exception("Invalid or empty namespace specified.")
         self._namespace = namespace
 
+    @staticmethod
+    def get_sessions():
+        return VvpSession.sessions.keys()
+
     @classmethod
-    def create_session(cls, vvp_base_url, namespace, set_default=False):
+    def create_session(cls, vvp_base_url, namespace, session_name, set_default=False, force=False):
         session = cls(vvp_base_url, namespace)
-        cls.sessions.append(session)
+        cls._add_session_to_dict(session_name, session, force=force)
         if (cls.default_session is None) or set_default:
             cls.default_session = session
         return session
+
+    @classmethod
+    def _add_session_to_dict(cls, session_name, session, force=False):
+        if (session_name in cls.sessions) and not force:
+            raise Exception("The session name already exists. Please use --force to update.")
+        cls.sessions[session_name] = session
 
     def get_namespace(self):
         return self._namespace

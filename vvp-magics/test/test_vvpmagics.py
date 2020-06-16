@@ -26,7 +26,7 @@ class VvpMagicsTests(unittest.TestCase):
                               text="""
         { "namespace": [{ "name": "namespaces/default" }] }
         """)
-        magic_line = "localhost -n default"
+        magic_line = "localhost -n default -s session1"
         magics = VvpMagics()
 
         session = magics.connect_vvp(magic_line)

@@ -18,6 +18,7 @@ class VvpMagics(Magics):
     @argument('hostname', type=str, help='Hostname')
     @argument('-p', '--port', type=str, default="8080", help='Port')
     @argument('-n', '--namespace', type=str, help='Namespace. If empty, lists all namespaces.')
+    @argument('-s', '--session', type=str, help='Session name')
     def connect_vvp(self, line):
         args = parse_argstring(self.connect_vvp, line)
         hostname = args.hostname
@@ -25,7 +26,10 @@ class VvpMagics(Magics):
         vvp_base_url = "http://{}:{}".format(hostname, port)
 
         if args.namespace:
-            return VvpSession.create_session(vvp_base_url, args.namespace)
+            session_name = args.session or VvpSession.default_session
+            if session_name is None:
+                raise Exception("No session name given and none already exist.")
+            return VvpSession.create_session(vvp_base_url, args.namespace, session_name)
         else:
             return self._get_namespaces(vvp_base_url)
 
@@ -50,4 +54,3 @@ class VvpMagics(Magics):
             print(response.text)
         else:
             print("Empty cell: doing nothing.")
-
