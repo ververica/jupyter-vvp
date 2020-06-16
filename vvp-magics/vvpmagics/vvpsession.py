@@ -2,24 +2,34 @@ import json
 
 from .httpsession import HttpSession
 
+namespaces_endpoint = "/namespaces/v1/namespaces"
+sessions = []
+default_session = None
+
 
 class VvpSession:
-    _namespace = ""
-    namespacesEndpoint = "/namespaces/v1/namespaces"
 
-    def __init__(self, vvpbaseurl: str, namespace: str):
+    def __init__(self, vvp_base_url: str, namespace: str):
         """
 
         :type http_session: HttpSession
         :type namespace: string
-        :type vvpbaseurl: string
+        :type vvp_base_url: string
         """
 
-        self._http_session = HttpSession(vvpbaseurl, None)
+        self._http_session = HttpSession(vvp_base_url, None)
 
         if not self._is_valid_namespace(namespace):
             raise Exception("Invalid or empty namespace specified.")
         self._namespace = namespace
+
+    @classmethod
+    def create_session(cls, vvp_base_url, namespace, set_default=False):
+        session = cls(vvp_base_url, namespace)
+        sessions.append(session)
+        global default_session
+        if (default_session is None) or set_default:
+            default_session = session
 
     def get_namespace(self):
         return self._namespace
@@ -31,12 +41,12 @@ class VvpSession:
         if not namespace:
             return False
 
-        request = self._http_session.get(self.namespacesEndpoint + "/{}".format(namespace))
+        request = self._http_session.get(namespaces_endpoint + "/{}".format(namespace))
         validity_from_statuscodes = {200: True, 404: False}
         return validity_from_statuscodes[request.status_code]
 
     def _get_namespace(self, namespace):
-        request = self._http_session.get(self.namespacesEndpoint + "/{}".format(namespace))
+        request = self._http_session.get(namespaces_endpoint + "/{}".format(namespace))
         namespace = (json.loads(request.text))["namespace"]
         return namespace
 

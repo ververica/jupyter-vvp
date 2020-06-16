@@ -3,6 +3,7 @@ import requests
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic)
 from IPython.core.magic_arguments import magic_arguments, argument, parse_argstring
 
+from vvpmagics import vvpsession
 from vvpmagics.vvpsession import VvpSession
 
 print('Loading vvp-vvpmagics.')
@@ -10,7 +11,7 @@ print('Loading vvp-vvpmagics.')
 
 @magics_class
 class VvpMagics(Magics):
-    namespacesEndpoint = VvpSession.namespacesEndpoint
+    namespacesEndpoint = vvpsession.namespaces_endpoint
 
     @line_magic
     @magic_arguments()
