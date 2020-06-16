@@ -1,0 +1,4 @@
+language: python
+script:
+  - pytest
+  - python vvp-magics/setup.py sdist
