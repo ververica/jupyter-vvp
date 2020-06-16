@@ -1,6 +1,7 @@
 import unittest
 import requests_mock
 
+
 from vvpmagics.vvpsession import VvpSession
 
 

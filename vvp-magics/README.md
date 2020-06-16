@@ -20,7 +20,7 @@ From within IPython (`ipython3`) or an IPython3 kernel in a local Jupyter instan
 run
 ```
 %load_ext vvpmagics
-%vvp_connect localhost
+%vvp_connect localhost 
 ```
 This will list the available namespaces.
 ```
@@ -31,14 +31,11 @@ If a namespace is specified then just that namespace will be called.
 The request URL used is shown.
 
 ```
-mySession = %vvp_connect localhost -n default
+%vvp_connect localhost -n default -s mysession
 ```
-will assign the session object to the given variable.
+This will connect and create a session with the name mysession.
+If no session exists then this will be the default.
 
-It is possible to run 
-```
-mySession.get_namespace()
-```
 
 ## Catalog SQL requests
 ```

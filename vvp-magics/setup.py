@@ -1,15 +1,15 @@
-DESCRIPTION         = "vvpMagics: Magics to connect to VVP"
-NAME                = "vvpmagics"
-VERSION             = '0.0.1'
-PACKAGES            = ['vvpmagics']
-AUTHOR              = "Ververica"
-AUTHOR_EMAIL        = "platform@ververica.com"
-URL                 = 'https://github.com/dataArtisans/vvp-jupyter'
-DOWNLOAD_URL        = 'https://github.com/dataArtisans/vvp-jupyter'
-LICENSE             = 'MIT'
-
-
 from distutils.core import setup
+
+DESCRIPTION = "vvpMagics: Magics to connect to VVP"
+NAME = "vvpmagics"
+VERSION = '0.0.1'
+PACKAGES = ['vvpmagics']
+AUTHOR = "Ververica"
+AUTHOR_EMAIL = "platform@ververica.com"
+URL = 'https://github.com/dataArtisans/vvp-jupyter'
+DOWNLOAD_URL = 'https://github.com/dataArtisans/vvp-jupyter'
+LICENSE = 'MIT'
+
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
