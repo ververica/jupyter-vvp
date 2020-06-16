@@ -25,7 +25,7 @@ class VvpMagics(Magics):
         vvp_base_url = "http://{}:{}".format(hostname, port)
 
         if args.namespace:
-            return VvpSession(vvp_base_url, args.namespace)
+            return VvpSession.create_session(vvp_base_url, args.namespace)
         else:
             return self._get_namespaces(vvp_base_url)
 

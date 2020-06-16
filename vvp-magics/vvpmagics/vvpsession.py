@@ -3,11 +3,11 @@ import json
 from .httpsession import HttpSession
 
 namespaces_endpoint = "/namespaces/v1/namespaces"
-sessions = []
-default_session = None
 
 
 class VvpSession:
+    sessions = []
+    default_session = None
 
     def __init__(self, vvp_base_url: str, namespace: str):
         """
@@ -26,10 +26,10 @@ class VvpSession:
     @classmethod
     def create_session(cls, vvp_base_url, namespace, set_default=False):
         session = cls(vvp_base_url, namespace)
-        sessions.append(session)
-        global default_session
-        if (default_session is None) or set_default:
-            default_session = session
+        cls.sessions.append(session)
+        if (cls.default_session is None) or set_default:
+            cls.default_session = session
+        return session
 
     def get_namespace(self):
         return self._namespace
