@@ -1,13 +1,6 @@
 import requests
 
 
-def _combine_dictionaries(*args):
-    dictionary = {}
-    for arg in list(filter(lambda x: x is not None, args)):
-        dictionary = {**dictionary, **arg}
-    return dictionary
-
-
 class HttpSession:
 
     def __init__(self, base_url, headers):
@@ -24,7 +17,7 @@ class HttpSession:
 
     def _send_request(self, path, method, request_headers, data=None):
         url = self._base_url + path
-        headers = _combine_dictionaries(self._headers, request_headers)
+        headers = {**(self._headers or {}), **(request_headers or {})}
         response = self._session.request(method, url, headers=headers, data=data)
 
         return response

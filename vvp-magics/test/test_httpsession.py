@@ -6,7 +6,7 @@ from vvpmagics.httpsession import HttpSession
 
 @requests_mock.Mocker()
 class HttpSessionTests(unittest.TestCase):
-    baseurl = "http://localhost:8080"
+    base_url = "http://localhost:8080"
     path = "/test"
     return_text = "Hello, world."
 
@@ -15,7 +15,7 @@ class HttpSessionTests(unittest.TestCase):
         requests_mocker.request(
             method='get', url='http://localhost:8080{}'.format(self.path), text=self.return_text)
 
-        result = HttpSession(self.baseurl, None).get(self.path)
+        result = HttpSession(self.base_url, None).get(self.path)
 
         assert result.status_code == 200
         assert result.text == self.return_text
@@ -27,7 +27,7 @@ class HttpSessionTests(unittest.TestCase):
         requests_mocker.request(method='post', url='http://localhost:8080{}'.format(
             self.path), additional_matcher=match_request_text, text=self.return_text)
 
-        result = HttpSession(self.baseurl, None).post(self.path, "hello world test")
+        result = HttpSession(self.base_url, None).post(self.path, "hello world test")
 
         assert result.status_code == 200
         assert result.text == self.return_text
