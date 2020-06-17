@@ -78,7 +78,7 @@ class VvpSession:
     def submit_post_request(self, endpoint, requestbody):
         request = self._http_session.post(
             path=endpoint,
-            request_headers={"Content-Type": "text/plain"},
+            request_headers={"Content-Type": "application/json"},
             data=requestbody
         )
         return request

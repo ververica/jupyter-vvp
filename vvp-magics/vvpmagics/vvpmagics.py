@@ -1,9 +1,34 @@
+import json
+
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic)
 from IPython.core.magic_arguments import magic_arguments, argument, parse_argstring
 
 from vvpmagics.vvpsession import VvpSession
 
 print('Loading vvp-vvpmagics.')
+
+
+def sql_execute_endpoint(namespace):
+    return "/sql/v1beta1/namespaces/{}/sqlscripts:execute".format(namespace)
+
+
+def sql_validate_endpoint(namespace):
+    return "/sql/v1beta1/namespaces/{}/sqlscripts:validate".format(namespace)
+
+
+sql_validate_responses = [
+    "VALIDATION_RESULT_INVALID",
+    "VALIDATION_RESULT_INVALID_QUERY",
+    "VALIDATION_RESULT_UNSUPPORTED_QUERY",
+    "VALIDATION_RESULT_VALID_INSERT_QUERY",
+    "VALIDATION_RESULT_VALID_SELECT_QUERY",
+    "VALIDATION_RESULT_VALID_DDL_STATEMENT",
+    "VALIDATION_RESULT_VALID_COMMAND_STATEMENT"
+]
+sql_validate_supported_responses = [
+    "VALIDATION_RESULT_VALID_DDL_STATEMENT",
+    "VALIDATION_RESULT_VALID_COMMAND_STATEMENT"
+]
 
 
 @magics_class
@@ -31,18 +56,24 @@ class VvpMagics(Magics):
         else:
             return VvpSession.get_namespaces(vvp_base_url)
 
-
     @cell_magic
     @magic_arguments()
-    @argument('session', type=str, help='Name of the object representing the connection to a given vvp namespace.')
+    @argument('-s', '--session', type=str, help='Name of the object representing the connection '
+                                                'to a given vvp namespace.')
     def flink_sql(self, line, cell):
         args = parse_argstring(self.flink_sql, line)
         session = VvpSession.get_session(args.session)
-        catalog_endpoint = "/catalog/v1beta1/namespaces/{}:execute" \
-            .format(session.get_namespace())
+
+        validate_endpoint = sql_validate_endpoint(session.get_namespace())
         if cell:
-            response = session.submit_post_request(catalog_endpoint, cell)
-            print(response)
-            print(response.text)
+            body = json.dumps({"script": cell})
+            validation_response = session.submit_post_request(validate_endpoint, body)
+            if json.loads(validation_response.text)['validationResult'] in sql_validate_supported_responses:
+                execute_endpoint = sql_execute_endpoint(session.get_namespace())
+                body = json.dumps({"statement": cell})
+                execute_response = session.submit_post_request(execute_endpoint, body)
+                return json.loads(execute_response.text)
+            else:
+                print("Invalid or unsupported SQL statement.")
         else:
             print("Empty cell: doing nothing.")
