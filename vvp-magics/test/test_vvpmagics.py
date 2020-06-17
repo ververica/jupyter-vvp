@@ -6,7 +6,7 @@ import random
 import requests_mock
 
 from vvpmagics import VvpMagics
-from vvpmagics.vvpmagics import SqlSyntaxException, FlinkSqlRequestException
+from vvpmagics.flinksql import SqlSyntaxException, FlinkSqlRequestException
 from vvpmagics.vvpsession import VvpSession
 
 # if VVP_LOCAL_RUNNING has any value (even false/0) then all tests will run
