@@ -1,3 +1,4 @@
+import os
 import string
 import unittest
 import random
@@ -7,6 +8,9 @@ import requests_mock
 from vvpmagics import VvpMagics
 from vvpmagics.vvpmagics import SqlSyntaxException, FlinkSqlRequestException
 from vvpmagics.vvpsession import VvpSession
+
+# if VVP_LOCAL_RUNNING has any value (even false/0) then all tests will run
+has_running_vvp_instance = os.environ.get('VVP_LOCAL_RUNNING', False)
 
 
 def sql_execute_endpoint(namespace):
@@ -53,6 +57,7 @@ class VvpMagicsTests(unittest.TestCase):
 
         assert session.get_namespace() is not None
 
+    @unittest.skipIf(not has_running_vvp_instance, 'Requires running VVP backend.')
     def test_flink_sql_executes_show_tables(self, requests_mock):
         magics = VvpMagics()
         connect_magic_line = "localhost -n default -s session1"
@@ -64,6 +69,7 @@ class VvpMagicsTests(unittest.TestCase):
         response = magics.flink_sql(sql_magic_line, sql_magic_cell)
         assert response['result'] == 'RESULT_SUCCESS_WITH_ROWS'
 
+    @unittest.skipIf(not has_running_vvp_instance, 'Requires running VVP backend.')
     def test_flink_sql_executes_create_table(self, requests_mock):
         magics = VvpMagics()
         connect_magic_line = "localhost -n default -s session1"
