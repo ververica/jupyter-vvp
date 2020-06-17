@@ -5,7 +5,7 @@ import random
 import requests_mock
 
 from vvpmagics import VvpMagics
-from vvpmagics.vvpmagics import SqlSyntaxException
+from vvpmagics.vvpmagics import SqlSyntaxException, FlinkSqlRequestException
 from vvpmagics.vvpsession import VvpSession
 
 
@@ -126,7 +126,7 @@ WITH (
         magics.connect_vvp(connect_magic_line)
 
         requests_mock.request(method='post', url='http://localhost:8080{}'.format(sql_validate_endpoint("default")),
-                              text=""" { "validationResult": "SOMETHING_NOT_CORRESPONDING_TO_VALID_STATEMENT" } """)
+                              text=""" { "validationResult": "VALIDATION_RESULT_INVALID" } """)
 
         sql_magic_line = ""
         sql_magic_cell = """BAD SQL COMMAND"""
@@ -136,3 +136,35 @@ WITH (
 
         assert raised_exception.exception.sql == sql_magic_cell
 
+    def test_flink_sql_throws_if_response_unsupported(self, requests_mock):
+        magics = VvpMagics()
+        connect_magic_line = "localhost -n default -s session1"
+        magics.connect_vvp(connect_magic_line)
+
+        requests_mock.request(method='post', url='http://localhost:8080{}'.format(sql_validate_endpoint("default")),
+                              text=""" { "validationResult": "SOME_UNSUPPORTED_RESPONSE" } """)
+
+        sql_magic_line = ""
+        sql_magic_cell = """SOME SQL COMMAND"""
+
+        with self.assertRaises(FlinkSqlRequestException) as raised_exception:
+            magics.flink_sql(sql_magic_line, sql_magic_cell)
+
+        assert raised_exception.exception.sql == sql_magic_cell
+
+    def test_flink_sql_throws_if_validation_status_not_200(self, requests_mock):
+        magics = VvpMagics()
+        connect_magic_line = "localhost -n default -s session1"
+        magics.connect_vvp(connect_magic_line)
+
+        requests_mock.request(method='post', url='http://localhost:8080{}'.format(sql_validate_endpoint("default")),
+                              text=""" { "validationResult": "VALIDATION_RESULT_INVALID" } """,
+                              status_code=400)
+
+        sql_magic_line = ""
+        sql_magic_cell = """SOME SQL COMMAND"""
+
+        with self.assertRaises(FlinkSqlRequestException) as raised_exception:
+            magics.flink_sql(sql_magic_line, sql_magic_cell)
+
+        assert raised_exception.exception.sql == sql_magic_cell
