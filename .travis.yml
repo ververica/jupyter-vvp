@@ -1,0 +1,8 @@
+language: python
+install:
+  - pip install -r vvp-magics/requirements.txt
+before_script: cd vvp-magics
+script:
+  - python -m unittest
+  - python setup.py sdist
+  

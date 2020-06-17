@@ -1,5 +1,7 @@
 # vvp-magics
 
+[![Build Status](https://travis-ci.com/dataArtisans/vvp-jupyter.svg?token=RGozj1rgTPauwuugxzZx&branch=master)](https://travis-ci.com/dataArtisans/vvp-jupyter)
+
 Experimental support for vvp using magics.
 Currently just a prototype.
 This calls two of the `/namespace` endpoints
