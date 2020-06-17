@@ -80,7 +80,9 @@ class VvpMagics(Magics):
                 execute_command_response = self.execute_sql(cell, session)
                 return json.loads(execute_command_response.text)
             else:
-                raise SqlSyntaxException("Invalid or unsupported SQL statement.", sql=cell)
+                exception = SqlSyntaxException("Invalid or unsupported SQL statement.", sql=cell, response=validation_response)
+                print(exception.get_details())
+                raise exception
         else:
             print("Empty cell: doing nothing.")
 
@@ -101,9 +103,14 @@ class VvpMagics(Magics):
 
 class SqlSyntaxException(Exception):
 
-    def __init__(self, message="", sql=None):
+    def __init__(self, message="", sql=None, response=None):
         self.message = message
         self.sql = sql
+        self.details = json.loads((response and response.text) or "{}")
+
+    def get_details(self):
+        return self.details
+
 
 
 class FlinkSqlRequestException(Exception):
