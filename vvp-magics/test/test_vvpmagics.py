@@ -1,9 +1,24 @@
+import string
 import unittest
+import random
 
 import requests_mock
 
 from vvpmagics import VvpMagics
+from vvpmagics.vvpmagics import SqlSyntaxException
 from vvpmagics.vvpsession import VvpSession
+
+
+def sql_execute_endpoint(namespace):
+    return "/sql/v1beta1/namespaces/{}/sqlscripts:execute".format(namespace)
+
+
+def sql_validate_endpoint(namespace):
+    return "/sql/v1beta1/namespaces/{}/sqlscripts:validate".format(namespace)
+
+
+def random_string():
+    return ''.join(random.choices(string.digits + "abcdef", k=4))
 
 
 @requests_mock.Mocker(real_http=True)
@@ -38,8 +53,7 @@ class VvpMagicsTests(unittest.TestCase):
 
         assert session.get_namespace() is not None
 
-    def test_flink_sql_executes_show_tables(self,requests_mock):
-
+    def test_flink_sql_executes_show_tables(self, requests_mock):
         magics = VvpMagics()
         connect_magic_line = "localhost -n default -s session1"
         magics.connect_vvp(connect_magic_line)
@@ -49,3 +63,76 @@ class VvpMagicsTests(unittest.TestCase):
 
         response = magics.flink_sql(sql_magic_line, sql_magic_cell)
         assert response['result'] == 'RESULT_SUCCESS_WITH_ROWS'
+
+    def test_flink_sql_executes_create_table(self, requests_mock):
+        magics = VvpMagics()
+        connect_magic_line = "localhost -n default -s session1"
+        magics.connect_vvp(connect_magic_line)
+
+        table_name = "testTable{}".format(random_string())
+
+        sql_magic_line = ""
+        sql_magic_cell = """CREATE TABLE `{}` (id int)
+COMMENT 'SomeComment'
+WITH (
+'connector.type' = 'kafka',
+'connector.version' = 'universal',
+'connector.topic' = 'testTopic',
+'connector.properties.bootstrap.servers' = 'localhost',
+'connector.properties.group.id' = 'testGroup',
+'connector.startup-mode' = 'earliest-offset'
+)""".format(table_name)
+
+        response = magics.flink_sql(sql_magic_line, sql_magic_cell)
+        assert response['result'] == 'RESULT_SUCCESS'
+
+    def test_flink_sql_executes_valid_command_statement(self, requests_mock):
+        magics = VvpMagics()
+        connect_magic_line = "localhost -n default -s session1"
+        magics.connect_vvp(connect_magic_line)
+
+        requests_mock.request(method='post', url='http://localhost:8080{}'.format(sql_validate_endpoint("default")),
+                              text=""" { "validationResult": "VALIDATION_RESULT_VALID_COMMAND_STATEMENT" } """)
+
+        requests_mock.request(method='post', url='http://localhost:8080{}'.format(sql_execute_endpoint("default")),
+                              text=""" { "result": "A_GOOD_RESULT" } """)
+
+        sql_magic_line = ""
+        sql_magic_cell = """FAKE SQL COMMAND"""
+
+        response = magics.flink_sql(sql_magic_line, sql_magic_cell)
+        assert response['result'] == 'A_GOOD_RESULT'
+
+    def test_flink_sql_executes_valid_ddl_statement(self, requests_mock):
+        magics = VvpMagics()
+        connect_magic_line = "localhost -n default -s session1"
+        magics.connect_vvp(connect_magic_line)
+
+        requests_mock.request(method='post', url='http://localhost:8080{}'.format(sql_validate_endpoint("default")),
+                              text=""" { "validationResult": "VALIDATION_RESULT_VALID_DDL_STATEMENT" } """)
+
+        requests_mock.request(method='post', url='http://localhost:8080{}'.format(sql_execute_endpoint("default")),
+                              text=""" { "result": "CREATED_SOMETHING" } """)
+
+        sql_magic_line = ""
+        sql_magic_cell = """FAKE SQL COMMAND"""
+
+        response = magics.flink_sql(sql_magic_line, sql_magic_cell)
+        assert response['result'] == 'CREATED_SOMETHING'
+
+    def test_flink_sql_throws_if_statement_bad(self, requests_mock):
+        magics = VvpMagics()
+        connect_magic_line = "localhost -n default -s session1"
+        magics.connect_vvp(connect_magic_line)
+
+        requests_mock.request(method='post', url='http://localhost:8080{}'.format(sql_validate_endpoint("default")),
+                              text=""" { "validationResult": "SOMETHING_NOT_CORRESPONDING_TO_VALID_STATEMENT" } """)
+
+        sql_magic_line = ""
+        sql_magic_cell = """BAD SQL COMMAND"""
+
+        with self.assertRaises(SqlSyntaxException) as raised_exception:
+            magics.flink_sql(sql_magic_line, sql_magic_cell)
+
+        assert raised_exception.exception.sql == sql_magic_cell
+

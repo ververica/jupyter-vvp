@@ -74,6 +74,13 @@ class VvpMagics(Magics):
                 execute_response = session.submit_post_request(execute_endpoint, body)
                 return json.loads(execute_response.text)
             else:
-                print("Invalid or unsupported SQL statement.")
+                raise SqlSyntaxException("Invalid or unsupported SQL statement.", sql=cell)
         else:
             print("Empty cell: doing nothing.")
+
+
+class SqlSyntaxException(Exception):
+
+    def __init__(self, message="", sql=None):
+        self.message = message
+        self.sql = sql
