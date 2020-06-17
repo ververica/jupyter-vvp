@@ -137,10 +137,9 @@ WITH (
         sql_magic_line = ""
         sql_magic_cell = """BAD SQL COMMAND"""
 
-        with self.assertRaises(SqlSyntaxException) as raised_exception:
-            magics.flink_sql(sql_magic_line, sql_magic_cell)
+        expected_exception = magics.flink_sql(sql_magic_line, sql_magic_cell)
 
-        assert raised_exception.exception.sql == sql_magic_cell
+        assert expected_exception.sql == sql_magic_cell
 
     def test_flink_sql_throws_if_response_unsupported(self, requests_mock):
         magics = VvpMagics()

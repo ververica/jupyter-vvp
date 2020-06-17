@@ -40,9 +40,7 @@ def run_query(session, cell):
         execute_command_response = execute_sql(cell, session)
         return json.loads(execute_command_response.text)
     else:
-        exception = SqlSyntaxException("Invalid or unsupported SQL statement.", sql=cell, response=validation_response)
-        print(exception.get_details())
-        raise exception
+        raise SqlSyntaxException("Invalid or unsupported SQL statement.", sql=cell, response=validation_response)
 
 
 def validate_sql(cell, session):

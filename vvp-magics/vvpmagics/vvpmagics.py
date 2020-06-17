@@ -1,7 +1,7 @@
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic)
 from IPython.core.magic_arguments import magic_arguments, argument, parse_argstring
 
-from vvpmagics.flinksql import run_query
+from vvpmagics.flinksql import run_query, SqlSyntaxException
 from vvpmagics.vvpsession import VvpSession
 
 print('Loading vvp-vvpmagics.')
@@ -41,7 +41,13 @@ class VvpMagics(Magics):
         session = VvpSession.get_session(args.session)
 
         if cell:
-            return run_query(session, cell)
+            try:
+                return run_query(session, cell)
+            except SqlSyntaxException as exception:
+                print(exception.message)
+                print("Details:")
+                print(exception.get_details())
+                return exception
         else:
             print("Empty cell: doing nothing.")
 
