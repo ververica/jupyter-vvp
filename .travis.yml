@@ -2,5 +2,5 @@ language: python
 install:
   - pip install -r vvp-magics/requirements.txt
 script:
-  - pytest
+  - python -m unittest
   - python vvp-magics/setup.py sdist
