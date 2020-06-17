@@ -5,3 +5,4 @@ before_script: cd vvp-magics
 script:
   - python -m unittest
   - python setup.py sdist
+  
