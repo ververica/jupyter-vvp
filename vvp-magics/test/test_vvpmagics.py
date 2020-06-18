@@ -101,3 +101,7 @@ WITH (
 
         response = magics.flink_sql(sql_magic_line, sql_magic_cell)
         assert response['result'] == 'RESULT_SUCCESS'
+
+
+if __name__ == '__main__':
+    unittest.main()
