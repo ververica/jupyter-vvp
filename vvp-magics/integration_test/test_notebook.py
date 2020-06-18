@@ -6,6 +6,8 @@ from nbconvert.preprocessors import ExecutePreprocessor
 
 from vvpmagics import vvpmagics
 
+travis = os.environ.get('TRAVIS', False)
+
 def run_notebook(notebook_path):
     nb_name, _ = os.path.splitext(os.path.basename(notebook_path))
     dirname = os.path.dirname(notebook_path)
@@ -32,6 +34,7 @@ def run_notebook(notebook_path):
 
 class IntegrationTest(unittest.TestCase):
 
+    @unittest.skipIf(not travis, 'Requires locally running VVP backend.')
     def test_connect_notebook(self):
         nb, errors = run_notebook('ConnectToVVP.ipynb')
         self.assertEqual(errors, [])
