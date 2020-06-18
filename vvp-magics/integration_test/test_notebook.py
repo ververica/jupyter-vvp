@@ -34,7 +34,7 @@ def run_notebook(notebook_path):
 
 class IntegrationTest(unittest.TestCase):
 
-    @unittest.skipIf(not travis, 'Requires locally running VVP backend.')
+    @unittest.skipIf(travis, 'Requires locally running VVP backend.')
     def test_connect_notebook(self):
         nb, errors = run_notebook('ConnectToVVP.ipynb')
         self.assertEqual(errors, [])
