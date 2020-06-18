@@ -12,14 +12,6 @@ from vvpmagics.vvpsession import VvpSession
 has_running_vvp_instance = os.environ.get('VVP_LOCAL_RUNNING', False)
 
 
-def sql_execute_endpoint(namespace):
-    return "/sql/v1beta1/namespaces/{}/sqlscripts:execute".format(namespace)
-
-
-def sql_validate_endpoint(namespace):
-    return "/sql/v1beta1/namespaces/{}/sqlscripts:validate".format(namespace)
-
-
 def random_string():
     return ''.join(random.choices(string.digits + "abcdef", k=4))
 
