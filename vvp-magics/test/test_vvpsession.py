@@ -11,8 +11,8 @@ class VvpSessionTests(unittest.TestCase):
     namespace = "test"
 
     def setUp(self):
-        VvpSession.sessions = {}
-        VvpSession.default_session = None
+        VvpSession._sessions = {}
+        VvpSession.default_session_name = None
 
     def test_get_namespace_returns_namespace(self, requests_mocker):
         requests_mocker.request(method='get', url='http://localhost:8080/namespaces/v1/namespaces', text="""
@@ -48,12 +48,12 @@ class VvpSessionTests(unittest.TestCase):
 
         first_session = VvpSession.create_session(self.vvp_base_url, self.namespace, "session1", set_default=True)
         assert first_session.get_namespace() == self.namespace
-        assert VvpSession.sessions['session1'] == first_session
-        assert VvpSession.default_session == first_session
+        assert VvpSession._sessions['session1'] == first_session
+        assert VvpSession.default_session_name == "session1"
 
         second_session = VvpSession.create_session(self.vvp_base_url, self.namespace, "session2", set_default=False)
-        assert VvpSession.sessions['session2'] == second_session
-        assert VvpSession.default_session == first_session
+        assert VvpSession._sessions['session2'] == second_session
+        assert VvpSession.default_session_name == "session1"
 
     def test_get_sessions(self,requests_mocker):
 

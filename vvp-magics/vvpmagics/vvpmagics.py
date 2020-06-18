@@ -1,9 +1,7 @@
-import json
-import requests
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic)
 from IPython.core.magic_arguments import magic_arguments, argument, parse_argstring
 
-from vvpmagics import vvpsession
+from vvpmagics.flinksql import run_query, SqlSyntaxException
 from vvpmagics.vvpsession import VvpSession
 
 print('Loading vvp-vvpmagics.')
@@ -11,7 +9,6 @@ print('Loading vvp-vvpmagics.')
 
 @magics_class
 class VvpMagics(Magics):
-    namespacesEndpoint = vvpsession.namespaces_endpoint
 
     @line_magic
     @magic_arguments()
@@ -19,6 +16,7 @@ class VvpMagics(Magics):
     @argument('-p', '--port', type=str, default="8080", help='Port')
     @argument('-n', '--namespace', type=str, help='Namespace. If empty, lists all namespaces.')
     @argument('-s', '--session', type=str, help='Session name')
+    @argument('-f', '--force', type=bool, help='Force updating of session names.')
     def connect_vvp(self, line):
         args = parse_argstring(self.connect_vvp, line)
         hostname = args.hostname
@@ -26,31 +24,31 @@ class VvpMagics(Magics):
         vvp_base_url = "http://{}:{}".format(hostname, port)
 
         if args.namespace:
-            session_name = args.session or VvpSession.default_session
+            session_name = args.session or VvpSession.default_session_name
+            force_update = args.force or False
             if session_name is None:
                 raise Exception("No session name given and none already exist.")
-            return VvpSession.create_session(vvp_base_url, args.namespace, session_name)
+            return VvpSession.create_session(vvp_base_url, args.namespace, session_name, force=force_update)
         else:
-            return self._get_namespaces(vvp_base_url)
-
-    def _get_namespaces(self, url):
-        url = url + self.namespacesEndpoint
-        print("Requesting from {}...".format(url))
-        request = requests.get(url)
-        namespaces = json.loads(request.text)
-        return namespaces
+            return VvpSession.get_namespaces(vvp_base_url)
 
     @cell_magic
     @magic_arguments()
-    @argument('session', type=str, help='Name of the object representing the connection to a given vvp namespace.')
-    def execute_catalog_statement(self, line, cell):
-        args = parse_argstring(self.execute_catalog_statement, line)
-        session = self.shell.user_ns[args.session]
-        catalog_endpoint = "/catalog/v1beta1/namespaces/{}:execute" \
-            .format(session.get_namespace())
+    @argument('-s', '--session', type=str, help='Name of the object representing the connection '
+                                                'to a given vvp namespace.')
+    def flink_sql(self, line, cell):
+        args = parse_argstring(self.flink_sql, line)
+        session = VvpSession.get_session(args.session)
+
         if cell:
-            response = session.submit_post_request(catalog_endpoint, cell)
-            print(response)
-            print(response.text)
+            try:
+                return run_query(session, cell)
+            except SqlSyntaxException as exception:
+                print(exception.message)
+                print("Details:")
+                print(exception.get_details())
         else:
             print("Empty cell: doing nothing.")
+
+
+
