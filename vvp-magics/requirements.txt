@@ -3,3 +3,4 @@ ipython~=7.15.0
 requests_mock
 nbconvert
 pytest
+pandas
