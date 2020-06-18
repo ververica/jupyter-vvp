@@ -1,9 +1,11 @@
 import unittest
+import json
 
 import requests_mock
 
-from vvpmagics.flinksql import run_query, SqlSyntaxException, FlinkSqlRequestException
+from vvpmagics.flinksql import run_query, _json_convert_to_dataframe, SqlSyntaxException, FlinkSqlRequestException
 from vvpmagics.vvpsession import VvpSession
+from pandas import DataFrame
 
 
 def sql_execute_endpoint(namespace):
@@ -102,3 +104,23 @@ class VvpSessionTests(unittest.TestCase):
         with self.assertRaises(FlinkSqlRequestException) as raised_exception:
             run_query(self.session, cell)
             assert raised_exception.exception.sql == cell
+
+class JsonTests(unittest.TestCase):
+    def test_json_conversion(self):
+        json_data = """{"result": "RESULT_SUCCESS_WITH_ROWS",
+ "resultTable": {"headers": [{"name": "name"},
+   {"name": "type"},
+   {"name": "null"},
+   {"name": "key"},
+   {"name": "computed column"},
+   {"name": "watermark"}],
+  "rows": [{"cells": [{"value": "id"},
+     {"value": "INT"},
+     {"value": "true"},
+     {"value": ""},
+     {"value": ""},
+     {"value": ""}]}]}}"""
+
+        json_data = json.loads(json_data)
+        df = _json_convert_to_dataframe(json_data)
+        print(df)
