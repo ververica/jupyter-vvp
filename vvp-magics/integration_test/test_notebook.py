@@ -35,8 +35,12 @@ class IntegrationTest(unittest.TestCase):
     @unittest.skipIf(travis, 'Requires locally running VVP backend.')
     def test_connect_notebook(self):
         notebook_path = os.path.dirname(__file__)
-        nb, errors = run_notebook(os.path.join(notebook_path, 'ConnectToVVP.ipynb'))
-        self.assertEqual(errors, [])
+        files = [item for item in os.listdir(notebook_path) if os.path.isfile(item)]
+        notebooks = filter(lambda x: x.endswith("test.ipynb"), files)
+        for i, notebook in enumerate(notebooks, start=1):
+            print("{}.: Running notebook '{}'.".format(i,notebook))
+            nb, errors = run_notebook(os.path.join(notebook_path, notebook))
+            self.assertEqual(errors, [])
 
 
 if __name__ == '__main__':
