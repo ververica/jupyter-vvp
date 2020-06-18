@@ -26,15 +26,13 @@ def random_string():
 
 @requests_mock.Mocker()
 class VvpMagicsTests(unittest.TestCase):
-
     namespace = "default"
 
     def setUp(self):
         VvpSession._sessions = {}
         VvpSession.default_session_name = None
 
-    def setUpMocks(self,requests_mock):
-
+    def setUpMocks(self, requests_mock):
         namespaces_response = " {{ 'namespaces': [{{ 'name': 'namespaces/{}' }}] }}".format(self.namespace)
         requests_mock.request(method='get', url='http://localhost:8080/namespaces/v1/namespaces',
                               text=namespaces_response)
@@ -69,42 +67,6 @@ class VvpMagicsTests(unittest.TestCase):
         session = magics.connect_vvp(magic_line)
 
         assert session.get_namespace() is not None
-
-    def test_flink_sql_executes_valid_command_statement(self, requests_mock):
-        self.setUpMocks(requests_mock)
-        magics = VvpMagics()
-        connect_magic_line = "localhost -n default -s session1"
-        magics.connect_vvp(connect_magic_line)
-
-        requests_mock.request(method='post', url='http://localhost:8080{}'.format(sql_validate_endpoint("default")),
-                              text=""" { "validationResult": "VALIDATION_RESULT_VALID_COMMAND_STATEMENT" } """)
-
-        requests_mock.request(method='post', url='http://localhost:8080{}'.format(sql_execute_endpoint("default")),
-                              text=""" { "result": "A_GOOD_RESULT" } """)
-
-        sql_magic_line = ""
-        sql_magic_cell = """FAKE SQL COMMAND"""
-
-        response = magics.flink_sql(sql_magic_line, sql_magic_cell)
-        assert response['result'] == 'A_GOOD_RESULT'
-
-    def test_flink_sql_executes_valid_ddl_statement(self, requests_mock):
-        self.setUpMocks(requests_mock)
-        magics = VvpMagics()
-        connect_magic_line = "localhost -n default -s session1"
-        magics.connect_vvp(connect_magic_line)
-
-        requests_mock.request(method='post', url='http://localhost:8080{}'.format(sql_validate_endpoint("default")),
-                              text=""" { "validationResult": "VALIDATION_RESULT_VALID_DDL_STATEMENT" } """)
-
-        requests_mock.request(method='post', url='http://localhost:8080{}'.format(sql_execute_endpoint("default")),
-                              text=""" { "result": "CREATED_SOMETHING" } """)
-
-        sql_magic_line = ""
-        sql_magic_cell = """FAKE SQL COMMAND"""
-
-        response = magics.flink_sql(sql_magic_line, sql_magic_cell)
-        assert response['result'] == 'CREATED_SOMETHING'
 
 
 class VvpMagicsTestsAgainstBackend(unittest.TestCase):
