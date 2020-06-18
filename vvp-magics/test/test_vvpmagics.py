@@ -46,7 +46,7 @@ class VvpMagicsTests(unittest.TestCase):
 
         response = magics.connect_vvp(magic_line)
 
-        assert not len(response['namespaces']) == 0
+        assert response['namespaces']
 
     def test_connect_vvp_creates_session_if_namespace_given(self, requests_mock):
         requests_mock.request(method='get', url='http://localhost:8080/namespaces/v1/namespaces/default',
