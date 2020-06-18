@@ -4,9 +4,8 @@ import unittest
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
 
-from vvpmagics import vvpmagics
-
 travis = os.environ.get('TRAVIS', False)
+
 
 def run_notebook(notebook_path):
     nb_name, _ = os.path.splitext(os.path.basename(notebook_path))
@@ -35,7 +34,8 @@ class IntegrationTest(unittest.TestCase):
 
     @unittest.skipIf(travis, 'Requires locally running VVP backend.')
     def test_connect_notebook(self):
-        nb, errors = run_notebook('ConnectToVVP.ipynb')
+        notebook_path = os.path.dirname(__file__)
+        nb, errors = run_notebook(os.path.join(notebook_path, 'ConnectToVVP.ipynb'))
         self.assertEqual(errors, [])
 
 
