@@ -102,3 +102,7 @@ class VvpSessionTests(unittest.TestCase):
         with self.assertRaises(FlinkSqlRequestException) as raised_exception:
             run_query(self.session, cell)
             assert raised_exception.exception.sql == cell
+
+
+if __name__ == '__main__':
+    unittest.main()
