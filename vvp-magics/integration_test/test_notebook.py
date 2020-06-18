@@ -25,10 +25,9 @@ def run_notebook(notebook_path):
         nbformat.write(nb, f)
     errors = []
     for cell in nb.cells:
-        if 'outputs' in cell:
-            for output in cell['outputs']:
-                if output.output_type == 'error':
-                    errors.append(output)
+        for output in cell.get('outputs', []):
+            if output.output_type == 'error':
+                errors.append(output)
     return nb, errors
 
 
