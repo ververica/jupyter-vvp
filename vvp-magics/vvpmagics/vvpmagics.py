@@ -47,7 +47,6 @@ class VvpMagics(Magics):
                 print(exception.message)
                 print("Details:")
                 print(exception.get_details())
-                return exception
         else:
             print("Empty cell: doing nothing.")
 

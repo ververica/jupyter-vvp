@@ -33,24 +33,24 @@ def is_supported_sql_command(response):
 
 
 def run_query(session, cell):
-    validation_response = validate_sql(cell, session)
+    validation_response = _validate_sql(cell, session)
     if is_invalid_request(validation_response):
         raise FlinkSqlRequestException("Bad HTTP request or incompatible VVP back-end.", sql=cell)
     if is_supported_sql_command(validation_response):
-        execute_command_response = execute_sql(cell, session)
+        execute_command_response = _execute_sql(cell, session)
         return json.loads(execute_command_response.text)
     else:
         raise SqlSyntaxException("Invalid or unsupported SQL statement.", sql=cell, response=validation_response)
 
 
-def validate_sql(cell, session):
+def _validate_sql(cell, session):
     validate_endpoint = sql_validate_endpoint(session.get_namespace())
     body = json.dumps({"script": cell})
     validation_response = session.submit_post_request(validate_endpoint, body)
     return validation_response
 
 
-def execute_sql(cell, session):
+def _execute_sql(cell, session):
     execute_endpoint = sql_execute_endpoint(session.get_namespace())
     body = json.dumps({"statement": cell})
     execute_response = session.submit_post_request(execute_endpoint, body)
