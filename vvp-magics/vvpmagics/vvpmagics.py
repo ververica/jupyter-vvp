@@ -46,7 +46,7 @@ class VvpMagics(Magics):
             except SqlSyntaxException as exception:
                 print(exception.message)
                 print("Details:")
-                print(exception.get_details())
+                return(exception.get_details())
         else:
             print("Empty cell: doing nothing.")
 
