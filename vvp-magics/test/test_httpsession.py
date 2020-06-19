@@ -48,3 +48,7 @@ class HttpSessionTests(unittest.TestCase):
 
         assert result.status_code == 200
         assert result.text == self.return_text
+
+
+if __name__ == '__main__':
+    unittest.main()

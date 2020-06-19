@@ -1,7 +1,6 @@
 import unittest
 import requests_mock
 
-
 from vvpmagics.vvpsession import VvpSession
 
 
@@ -55,8 +54,7 @@ class VvpSessionTests(unittest.TestCase):
         assert VvpSession._sessions['session2'] == second_session
         assert VvpSession.default_session_name == "session1"
 
-    def test_get_sessions(self,requests_mocker):
-
+    def test_get_sessions(self, requests_mocker):
         requests_mocker.request(method='get',
                                 url='http://localhost:8080/namespaces/v1/namespaces/{}'.format(self.namespace), text="""
                            { "namespace": { "name": "namespaces/test" } }
@@ -66,3 +64,7 @@ class VvpSessionTests(unittest.TestCase):
         sessions = VvpSession.get_sessions()
 
         assert "session1" in sessions
+
+
+if __name__ == '__main__':
+    unittest.main()
