@@ -1,6 +1,7 @@
 requests~=2.23.0
 ipython~=7.15.0
 requests_mock
-nbconvert
+nbconvert~=5.6.1
 pytest
+nbformat~=5.0.6
 pandas

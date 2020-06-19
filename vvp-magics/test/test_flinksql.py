@@ -109,6 +109,7 @@ class VvpSessionTests(unittest.TestCase):
             run_query(self.session, cell)
             assert raised_exception.exception.sql == cell
 
+
 class JsonTests(unittest.TestCase):
     def test_json_conversion(self):
         json_string = """{"result": "RESULT_SUCCESS_WITH_ROWS",
@@ -128,3 +129,7 @@ class JsonTests(unittest.TestCase):
         json_data = json.loads(json_string)
         df = _json_convert_to_dataframe(json_data)
         print(df)
+
+if __name__ == '__main__':
+    unittest.main()
+
