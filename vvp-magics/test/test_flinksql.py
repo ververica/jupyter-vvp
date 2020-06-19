@@ -44,12 +44,14 @@ class VvpSessionTests(unittest.TestCase):
                               text=""" { "validationResult": "VALIDATION_RESULT_VALID_COMMAND_STATEMENT" } """)
 
         requests_mock.request(method='post', url='http://localhost:8080{}'.format(sql_execute_endpoint(self.namespace)),
-                              text=""" { "result": "A_GOOD_RESULT" } """)
+                              text=""" {"result": "RESULT_SUCCESS_WITH_ROWS",
+ "resultTable": {"headers": [{"name": "table name"}],
+  "rows": [{"cells": [{"value": "testTable"}]}]}} """)
 
         cell = """FAKE SQL COMMAND"""
 
         response = run_query(self.session, cell)
-        assert response['result'] == 'A_GOOD_RESULT'
+        assert response.iloc[0]['table name'] == 'testTable'
 
     def test_flink_sql_executes_valid_ddl_statement(self, requests_mock):
         self._setUpSession(requests_mock)
@@ -59,12 +61,14 @@ class VvpSessionTests(unittest.TestCase):
                               text=""" { "validationResult": "VALIDATION_RESULT_VALID_DDL_STATEMENT" } """)
 
         requests_mock.request(method='post', url='http://localhost:8080{}'.format(sql_execute_endpoint(self.namespace)),
-                              text=""" { "result": "CREATED_SOMETHING" } """)
+                              text=""" {"result": "RESULT_SUCCESS_WITH_ROWS",
+ "resultTable": {"headers": [{"name": "table name"}],
+  "rows": [{"cells": [{"value": "testTable"}]}]}} """)
 
         cell = """FAKE SQL COMMAND"""
 
         response = run_query(self.session, cell)
-        assert response['result'] == 'CREATED_SOMETHING'
+        assert response.iloc[0]['table name'] == 'testTable'
 
     def test_flink_sql_throws_if_statement_bad(self, requests_mock):
         self._setUpSession(requests_mock)
@@ -107,7 +111,7 @@ class VvpSessionTests(unittest.TestCase):
 
 class JsonTests(unittest.TestCase):
     def test_json_conversion(self):
-        json_data = """{"result": "RESULT_SUCCESS_WITH_ROWS",
+        json_string = """{"result": "RESULT_SUCCESS_WITH_ROWS",
  "resultTable": {"headers": [{"name": "name"},
    {"name": "type"},
    {"name": "null"},
@@ -121,6 +125,6 @@ class JsonTests(unittest.TestCase):
      {"value": ""},
      {"value": ""}]}]}}"""
 
-        json_data = json.loads(json_data)
+        json_data = json.loads(json_string)
         df = _json_convert_to_dataframe(json_data)
         print(df)
