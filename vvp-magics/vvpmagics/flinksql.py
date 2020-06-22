@@ -1,5 +1,5 @@
 import json
-
+from pandas import DataFrame
 
 def sql_execute_endpoint(namespace):
     return "/sql/v1beta1/namespaces/{}/sqlscripts:execute".format(namespace)
@@ -38,7 +38,8 @@ def run_query(session, cell):
         raise FlinkSqlRequestException("Bad HTTP request or incompatible VVP back-end.", sql=cell)
     if is_supported_sql_command(validation_response):
         execute_command_response = _execute_sql(cell, session)
-        return json.loads(execute_command_response.text)
+        json_data = json.loads(execute_command_response.text)
+        return _json_convert_to_dataframe(json_data)
     else:
         raise SqlSyntaxException("Invalid or unsupported SQL statement.", sql=cell, response=validation_response)
 
@@ -49,6 +50,29 @@ def _validate_sql(cell, session):
     validation_response = session.submit_post_request(validate_endpoint, body)
     return validation_response
 
+
+def _json_convert_to_dataframe(json_data):
+    if "resultTable" not in json_data:
+        return json_data
+
+    table = json_data["resultTable"]
+    headers = table["headers"]
+    rows = table["rows"]
+    columns = []
+    for h in headers:
+        for v in h.values():
+            columns.append(v)
+
+    data = []
+    for row in rows:
+        cells = row["cells"]
+        cellData = []
+        for cell in cells:
+            for cellValue in cell.values():
+                cellData.append(cellValue)
+        data.append(cellData)
+
+    return DataFrame(data=data, columns=columns)
 
 def _execute_sql(cell, session):
     execute_endpoint = sql_execute_endpoint(session.get_namespace())

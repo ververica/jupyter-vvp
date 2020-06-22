@@ -1,9 +1,11 @@
 import unittest
+import json
 
 import requests_mock
 
-from vvpmagics.flinksql import run_query, SqlSyntaxException, FlinkSqlRequestException
+from vvpmagics.flinksql import run_query, _json_convert_to_dataframe, SqlSyntaxException, FlinkSqlRequestException
 from vvpmagics.vvpsession import VvpSession
+from pandas import DataFrame
 
 
 def sql_execute_endpoint(namespace):
@@ -42,12 +44,14 @@ class VvpSessionTests(unittest.TestCase):
                               text=""" { "validationResult": "VALIDATION_RESULT_VALID_COMMAND_STATEMENT" } """)
 
         requests_mock.request(method='post', url='http://localhost:8080{}'.format(sql_execute_endpoint(self.namespace)),
-                              text=""" { "result": "A_GOOD_RESULT" } """)
+                              text=""" {"result": "RESULT_SUCCESS_WITH_ROWS",
+ "resultTable": {"headers": [{"name": "table name"}],
+  "rows": [{"cells": [{"value": "testTable"}]}]}} """)
 
         cell = """FAKE SQL COMMAND"""
 
         response = run_query(self.session, cell)
-        assert response['result'] == 'A_GOOD_RESULT'
+        assert response.iloc[0]['table name'] == 'testTable'
 
     def test_flink_sql_executes_valid_ddl_statement(self, requests_mock):
         self._setUpSession(requests_mock)
@@ -57,12 +61,14 @@ class VvpSessionTests(unittest.TestCase):
                               text=""" { "validationResult": "VALIDATION_RESULT_VALID_DDL_STATEMENT" } """)
 
         requests_mock.request(method='post', url='http://localhost:8080{}'.format(sql_execute_endpoint(self.namespace)),
-                              text=""" { "result": "CREATED_SOMETHING" } """)
+                              text=""" {"result": "RESULT_SUCCESS_WITH_ROWS",
+ "resultTable": {"headers": [{"name": "table name"}],
+  "rows": [{"cells": [{"value": "testTable"}]}]}} """)
 
         cell = """FAKE SQL COMMAND"""
 
         response = run_query(self.session, cell)
-        assert response['result'] == 'CREATED_SOMETHING'
+        assert response.iloc[0]['table name'] == 'testTable'
 
     def test_flink_sql_throws_if_statement_bad(self, requests_mock):
         self._setUpSession(requests_mock)
@@ -104,5 +110,37 @@ class VvpSessionTests(unittest.TestCase):
             assert raised_exception.exception.sql == cell
 
 
+class JsonTests(unittest.TestCase):
+    def test_json_conversion(self):
+        json_string = """{"result": "RESULT_SUCCESS_WITH_ROWS",
+ "resultTable": {"headers": [{"name": "name"},
+   {"name": "type"},
+   {"name": "null"},
+   {"name": "key"},
+   {"name": "computed column"},
+   {"name": "watermark"}],
+  "rows": [{"cells": [{"value": "id"},
+     {"value": "INT"},
+     {"value": "true"},
+     {"value": ""},
+     {"value": ""},
+     {"value": ""}]}]}}"""
+
+        json_data = json.loads(json_string)
+        df = _json_convert_to_dataframe(json_data)
+        assert df.iloc[0]['name'] == 'id'
+        assert df.iloc[0]['type'] == 'INT'
+        assert df.iloc[0]['null'] == 'true'
+
+    def test_json_conversion_ignores_results_without_table(self):
+        json_string = """{"result": "RESULT_NO_TABLE"}"""
+
+        json_data = json.loads(json_string)
+        result = _json_convert_to_dataframe(json_data)
+        print(result)
+        assert result == json_data
+
+
 if __name__ == '__main__':
     unittest.main()
+
