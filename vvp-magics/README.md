@@ -63,6 +63,13 @@ Note: the `mySession` variable is actually referenced
 by treating its input to the magic as a string 
 and finding the object from the local user scope by name.
 
+## Further examples
+
+See the example notebooks:
+
+- [Connect to VVP](./example_notebooks/ConnectToVVP.test.ipynb)
+- [DDL Commands and queries](./example_notebooks/FlinkSql.test.ipynb)
+
 ## Help
 ```
 %connect_vvp?
