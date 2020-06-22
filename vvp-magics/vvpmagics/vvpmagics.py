@@ -38,8 +38,8 @@ class VvpMagics(Magics):
     @magic_arguments()
     @argument('-s', '--session', type=str, help='Name of the object representing the connection '
                                                 'to a given vvp namespace.')
-    @argument('-o', '--output', type=str, help='Name of variable to assign the resulting data frame to, '
-                                               'nothing will be assigned if query does not result in data frame')
+    @argument('-o', '--output', type=str, help='Name of variable to assign the resulting data frame to. '
+                                               'Nothing will be assigned if query does not result in data frame')
     def flink_sql(self, line, cell):
         args = parse_argstring(self.flink_sql, line)
         session = VvpSession.get_session(args.session)
@@ -47,7 +47,7 @@ class VvpMagics(Magics):
         if cell:
             try:
                 result = run_query(session, cell)
-                if isinstance(result, DataFrame):
+                if (args.output is not None) and (isinstance(result, DataFrame)):
                     self.shell.user_ns[args.output] = result
                 return result
             except SqlSyntaxException as exception:
