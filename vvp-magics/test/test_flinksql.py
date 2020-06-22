@@ -137,7 +137,8 @@ class JsonTests(unittest.TestCase):
 
         json_data = json.loads(json_string)
         result = _json_convert_to_dataframe(json_data)
-        assert result == json_string
+        print(result)
+        assert result == json_data
 
 
 if __name__ == '__main__':
