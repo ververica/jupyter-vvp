@@ -60,7 +60,7 @@ class VvpSession:
             return False
 
         request = self._http_session.get(namespaces_endpoint + "/{}".format(namespace))
-        validity_from_statuscodes = {200: True, 404: False}
+        validity_from_statuscodes = {200: True, 400: False, 404: False}
         return validity_from_statuscodes[request.status_code]
 
     def _get_namespace(self, namespace):
