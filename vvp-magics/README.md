@@ -2,10 +2,7 @@
 
 [![Build Status](https://travis-ci.com/dataArtisans/vvp-jupyter.svg?token=RGozj1rgTPauwuugxzZx&branch=master)](https://travis-ci.com/dataArtisans/vvp-jupyter)
 
-Experimental support for vvp using magics.
-Currently just a prototype.
-This calls two of the `/namespace` endpoints
-to show that we can send calls and display the response as text.
+Experimental support for vvp using IPython Magics commands.
 
 ## Packaging
 
@@ -24,11 +21,10 @@ run
 %load_ext vvpmagics
 %connect_vvp localhost 
 ```
-This will list the available namespaces.
-```
-%connect_vvp?
-```
-will show help text including how to specify the namespace and port.
+to 
+ 1. load the extension; and
+ 2. list the available namespaces.
+ 
 If a namespace is specified then just that namespace will be called.
 The request URL used is shown.
 
@@ -39,9 +35,9 @@ This will connect and create a session with the name mysession.
 If no session exists then this will be the default.
 
 
-## Catalog SQL requests
+## SQL requests
 ```
-%%execute_catalog_statement mySession 
+%%flink_sql mySession 
    ...: CREATE TABLE `testTable2` ( 
    ...:   id bigint 
    ...:   -- Watermark definition, here for a timestamp column 'ts' 
@@ -60,8 +56,15 @@ If no session exists then this will be the default.
    ...: ) 
 
 ```
-This will return the HTTP response code from the back end.
+This will return the HTTP response body from the back end.
+If there is a `resultsTable` object then this will be returned as a Pandas Dataframe.
 
 Note: the `mySession` variable is actually referenced 
 by treating its input to the magic as a string 
 and finding the object from the local user scope by name.
+
+## Help
+```
+%connect_vvp?
+```
+will show help text.
