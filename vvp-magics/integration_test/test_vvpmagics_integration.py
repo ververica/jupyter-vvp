@@ -30,7 +30,7 @@ class VvpMagicsTestsAgainstBackend(unittest.TestCase):
         sql_magic_cell = "SHOW TABLES"
 
         response = magics.flink_sql(sql_magic_line, sql_magic_cell)
-        assert response['result'] == 'RESULT_SUCCESS_WITH_ROWS'
+        assert "table name" in response.columns
 
     @unittest.skipIf(not has_running_vvp_instance, 'Requires running VVP backend.')
     def test_flink_sql_executes_create_table(self):
