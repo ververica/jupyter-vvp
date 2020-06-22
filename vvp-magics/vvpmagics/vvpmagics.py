@@ -4,6 +4,8 @@ from IPython.core.magic_arguments import magic_arguments, argument, parse_argstr
 from vvpmagics.flinksql import run_query, SqlSyntaxException
 from vvpmagics.vvpsession import VvpSession
 
+from pandas import DataFrame
+
 print('Loading vvp-vvpmagics.')
 
 
@@ -36,13 +38,18 @@ class VvpMagics(Magics):
     @magic_arguments()
     @argument('-s', '--session', type=str, help='Name of the object representing the connection '
                                                 'to a given vvp namespace.')
+    @argument('-o', '--output', type=str, help='Name of variable to assign the resulting data frame to. '
+                                               'Nothing will be assigned if query does not result in data frame')
     def flink_sql(self, line, cell):
         args = parse_argstring(self.flink_sql, line)
         session = VvpSession.get_session(args.session)
 
         if cell:
             try:
-                return run_query(session, cell)
+                result = run_query(session, cell)
+                if (args.output is not None) and (isinstance(result, DataFrame)):
+                    self.shell.user_ns[args.output] = result
+                return result
             except SqlSyntaxException as exception:
                 print(exception.message)
                 print(exception.get_details())
