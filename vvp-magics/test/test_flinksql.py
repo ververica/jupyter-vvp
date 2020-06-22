@@ -128,7 +128,17 @@ class JsonTests(unittest.TestCase):
 
         json_data = json.loads(json_string)
         df = _json_convert_to_dataframe(json_data)
-        print(df)
+        assert df.iloc[0]['name'] == 'id'
+        assert df.iloc[0]['type'] == 'INT'
+        assert df.iloc[0]['null'] == 'true'
+
+    def test_json_conversion_ignores_results_without_table(self):
+        json_string = """{"result": "RESULT_NO_TABLE"}"""
+
+        json_data = json.loads(json_string)
+        result = _json_convert_to_dataframe(json_data)
+        assert result == json_string
+
 
 if __name__ == '__main__':
     unittest.main()

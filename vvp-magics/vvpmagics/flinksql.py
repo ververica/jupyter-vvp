@@ -52,6 +52,9 @@ def _validate_sql(cell, session):
 
 
 def _json_convert_to_dataframe(json_data):
+    if "resultTable" not in json_data:
+        return json_data
+
     table = json_data["resultTable"]
     headers = table["headers"]
     rows = table["rows"]
