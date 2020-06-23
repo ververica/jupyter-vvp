@@ -20,7 +20,7 @@ class VvpSession:
         self._http_session = HttpSession(vvp_base_url, None)
 
         if not self._is_valid_namespace(namespace):
-            raise Exception("Invalid or empty namespace specified.")
+            raise SessionException("Invalid or empty namespace specified.")
         self._namespace = namespace
 
     @classmethod
@@ -32,7 +32,7 @@ class VvpSession:
         try:
             return cls._sessions[session_name or cls.default_session_name]
         except KeyError:
-            raise Exception("The session name {} is invalid.".format(session_name))
+            raise SessionException("The session name {} is invalid.".format(session_name))
 
     @classmethod
     def create_session(cls, vvp_base_url, namespace, session_name, set_default=False, force=False):
@@ -45,8 +45,8 @@ class VvpSession:
     @classmethod
     def _add_session_to_dict(cls, session_name, session, force=False):
         if (session_name in cls._sessions) and not force:
-            raise Exception("The session name {} already exists. Please use --force to update."
-                            .format(session_name))
+            raise SessionException("The session name {} already exists. Please use --force to update."
+                                   .format(session_name))
         cls._sessions[session_name] = session
 
     def get_namespace(self):
@@ -82,3 +82,9 @@ class VvpSession:
             data=requestbody
         )
         return request
+
+
+class SessionException(Exception):
+
+    def __init__(self, message=""):
+        super(SessionException, self).__init__(message)
