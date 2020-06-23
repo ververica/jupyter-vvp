@@ -82,3 +82,7 @@ class VvpSession:
             data=requestbody
         )
         return request
+
+    def execute_get_request(self, endpoint):
+        request = self._http_session.get(path=endpoint, request_headers={"Content-Type": "application/json"})
+        return request
