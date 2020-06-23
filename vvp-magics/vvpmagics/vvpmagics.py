@@ -14,7 +14,7 @@ print('Loading vvp-vvpmagics.')
 @magics_class
 class VvpMagics(Magics):
 
-    def __init__(self, shell):
+    def __init__(self, shell=None):
         super(VvpMagics, self).__init__(shell)
         self._ipython_shell = get_ipython()
 
