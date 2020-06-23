@@ -25,7 +25,7 @@ def run_notebook(notebook_path):
     errors = []
     for cell in nb.cells:
         for output in cell.get('outputs', []):
-            if output.output_type == 'error':
+            if output.output_type == 'error' or (output.output_type == 'stream' and output.name == 'stderr'):
                 errors.append(output)
     return nb, errors
 

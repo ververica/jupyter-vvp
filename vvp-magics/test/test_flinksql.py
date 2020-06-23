@@ -75,7 +75,9 @@ class VvpSessionTests(unittest.TestCase):
 
         requests_mock.request(method='post',
                               url='http://localhost:8080{}'.format(sql_validate_endpoint(self.namespace)),
-                              text=""" { "validationResult": "VALIDATION_RESULT_INVALID" } """)
+                              text="""{"validationResult": "VALIDATION_RESULT_INVALID_QUERY", "errorDetails": {
+                              "lineNumber": 0, "columnNumber": 0, "endLineNumber": 0, "endColumnNumber": 0, 
+                              "message": "Table `default`.`default`.`test` already exists.", "cause": ""}} """)
 
         cell = """BAD SQL COMMAND"""
 
@@ -143,4 +145,3 @@ class JsonTests(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
-
