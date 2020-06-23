@@ -46,7 +46,7 @@ class VvpSession:
     def _add_session_to_dict(cls, session_name, session, force=False):
         if (session_name in cls._sessions) and not force:
             raise SessionException("The session name {} already exists. Please use --force to update."
-                            .format(session_name))
+                                   .format(session_name))
         cls._sessions[session_name] = session
 
     def get_namespace(self):
@@ -87,4 +87,4 @@ class VvpSession:
 class SessionException(Exception):
 
     def __init__(self, message=""):
-        self.message = message
+        super(SessionException, self).__init__(message)

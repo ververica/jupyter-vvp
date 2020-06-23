@@ -42,10 +42,7 @@ class VvpMagics(Magics):
             else:
                 return VvpSession.get_namespaces(vvp_base_url)
         except Exception as exception:
-            if hasattr(exception, 'message'):
-                self.print_error(exception.message)
-            else:
-                self.print_error(exception)
+            self.print_error(exception)
             if args.debug or False:
                 raise exception
 
@@ -71,9 +68,9 @@ class VvpMagics(Magics):
                     self.print_error(exception.message)
                 else:
                     self.print_error(exception)
-                if hasattr(exception, 'get_details'):
-                    self.print_error(exception.get_details())
                 if args.debug or False:
+                    if hasattr(exception, 'get_details'):
+                        self.print_error(exception.get_details())
                     raise exception
 
         else:
