@@ -1,0 +1,84 @@
+version: '3'
+services:
+  vvp-gateway:
+    image: ${GATEWAY_IMAGE:-eu.gcr.io/vvp-devel-240810/vvp-gateway:latest}
+    environment:
+    - spring.profiles.active=docker-compose
+    - vvp.gateway.services.sqlServiceEnabled=true
+    - vvp.license.data.kind=License
+    - vvp.license.data.apiVersion=v1
+    - vvp.license.data.metadata.id=7376ccea-bbab-4c02-8777-c56e808b8d5f
+    - vvp.license.data.metadata.createdAt=2020-06-07T10:40:34.591682Z
+    - vvp.license.data.metadata.annotations.signature=iQIcBAABCAAGBQJe3MQiAAoJEKio0mvM9xxRDMUQAK16AJ4easW9WIhINCs0FPbQxX3FsHDZJ0Js7vVmo9jBgPjov0gb6+PecNjAifvbUqH0+ahdozxO/fe1N3AnlRljC3qryOSxYkZffV14ERWtLciTqKdgGaNvEcboxIpzimdM4kD80z2q22FKFBcpR3dQeWPRLEKsIymG1yB0zX8Y+lusI4p+CmU9F6Psd6qAIx2Hm1/sq08xlBePO4zZ1f0YIggPrrDUchwuijN/Mb7/K3EpvDRBHeYsuzTdjWmU0UVuLxzkktOQYkRxOwleYO++TIjnBLiqfxxIvupp8MAz1h5qd0V4mAlGqGqGGX7l+crl6lTVjTOvDbDet/fW6bb48CpLeGMgrADpejQdPtTMMHGJWrm6dHrG0ovLeB2h8BdC6WDOed9RGa5o26KMLf/sYbr30tPwne1gwEoue0/dy0JZvVE8HQ1RvU7PQHM6ryHen/jdP35BNbFqdQ7y2XB0M0jQgld7y2ehFid84CKAvrjRtiDUHE0lHDXg48qUuDRpTFyPjDWCYE3E6SBFmejO1nDi9EccpsSQrBZDdCUbIuFRiVY26OStJOF10kUmuHiZEIDp7mibF7YtP2Gv+RQs6gFIWF9Cf+QZh+0iVKjWSQpKSYn4B8XhLen9TOAOHvfL48uQCpvSUYShLZ5CV2yYJJXsfAIrXIwtp3iyaYZ2
+    - vvp.license.data.metadata.annotations.licenseSpec=ewogICJsaWNlbnNlSWQiIDogIjczNzZjY2VhLWJiYWItNGMwMi04Nzc3LWM1NmU4MDhiOGQ1ZiIsCiAgImxpY2Vuc2VkVG8iIDogIkRhdGEgQXJ0aXNhbnMgR21iSCIsCiAgImV4cGlyZXMiIDogIjIwMjAtMDgtMzFUMDA6MDA6MDBaIiwKICAicGFyYW1zIiA6IHsKICAgICJxdW90YS50eXBlIiA6ICJMSU1JVEVEIiwKICAgICJxdW90YS5jcHUiIDogIjIwIiwKICAgICJvdmVydXNlLmNwdSIgOiAiMCIsCiAgICAidHJpYWwiIDogImZhbHNlIiwKICAgICJub3RGb3JSZXNhbGUiIDogInRydWUiCiAgfQp9
+    - vvp.license.data.spec.licenseId=7376ccea-bbab-4c02-8777-c56e808b8d5f
+    - vvp.license.data.spec.licensedTo=Data Artisans GmbH
+    - vvp.license.data.spec.expires=2020-08-31T00:00:00Z
+    - vvp.license.data.spec.params.quota.type=LIMITED
+    - vvp.license.data.spec.params.quota.cpu=20
+    - vvp.license.data.spec.params.overuse.cpu=0
+    - vvp.license.data.spec.params.trial=false
+    - vvp.license.data.spec.params.notForResale=true
+    #
+    # Uncomment to proxy to local appmanager development server
+    #- vvp.gateway.services.appmanager-endpoint=http://host.docker.internal:8080
+    #
+    # Uncomment to proxy to local vvp-ui development server
+    #- vvp.gateway.services.ui-endpoint=http://host.docker.internal:4200
+    #
+    # Uncomment to enable auth
+    #- vvp.auth.enabled=true
+    #
+    volumes:
+    - ./docker/docker-compose-configs/kubeconfig.yaml:/home/vvp/.kube/config:ro
+    - vvp-data:/vvp/data:rw
+    ports:
+    - '8280:8080'
+    restart: unless-stopped
+  vvp-ui:
+    image: ${UI_IMAGE:-eu.gcr.io/vvp-devel-240810/vvp-ui:latest}
+    ports:
+    - '4200:4200'
+    restart: unless-stopped
+  vvp-appmanager:
+    image: ${APPMANAGER_IMAGE:-eu.gcr.io/vvp-devel-240810/vvp-appmanager:latest}
+    environment:
+    - spring.profiles.active=docker-compose
+    volumes:
+    - ./docker/docker-compose-configs/kubeconfig.yaml:/home/vvp/.kube/config:ro
+    - vvp-data:/vvp/data:rw
+    ports:
+    - '8080:8080'
+    restart: unless-stopped
+  keycloak-mariadb:
+    image: mariadb:10
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: keycloak
+      MYSQL_USER: keycloak
+      MYSQL_PASSWORD: password
+    volumes:
+    - ./docker/docker-compose-configs/keycloak-mariadb.sql.gz:/docker-entrypoint-initdb.d/keycloak-mariadb.sql.gz
+    - keycloak-mariadb-data:/var/lib/mysql:rw
+    restart: unless-stopped
+  keycloak:
+    image: jboss/keycloak:5.0.0
+    command: ['-c standalone.xml', '-b=0.0.0.0', '-Djboss.http.port=8285']
+    environment:
+    - KEYCLOAK_USER=keycloak
+    - KEYCLOAK_PASSWORD=password
+    - DB_VENDOR=mariadb
+    - DB_ADDR=keycloak-mariadb
+    - DB_DATABASE=keycloak
+    - DB_USER=keycloak
+    - DB_PASSWORD=password
+    ports:
+    - '8285:8285'
+    restart: unless-stopped
+    networks:
+      default:
+        aliases:
+        - localhost.office.data-artisans.net
+volumes:
+  vvp-data:
+  keycloak-mariadb-data:
