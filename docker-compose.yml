@@ -19,16 +19,16 @@ services:
     - vvp.license.data.spec.params.overuse.cpu=0
     - vvp.license.data.spec.params.trial=false
     - vvp.license.data.spec.params.notForResale=true
-​
+    #
     # Uncomment to proxy to local appmanager development server
     #- vvp.gateway.services.appmanager-endpoint=http://host.docker.internal:8080
-​
+    #
     # Uncomment to proxy to local vvp-ui development server
     #- vvp.gateway.services.ui-endpoint=http://host.docker.internal:4200
-​
+    #
     # Uncomment to enable auth
     #- vvp.auth.enabled=true
-​
+    #
     volumes:
     - ./docker/docker-compose-configs/kubeconfig.yaml:/home/vvp/.kube/config:ro
     - vvp-data:/vvp/data:rw
