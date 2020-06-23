@@ -66,13 +66,14 @@ def _json_convert_to_dataframe(json_data):
     data = []
     for row in rows:
         cells = row["cells"]
-        cellData = []
+        cell_data = []
         for cell in cells:
-            for cellValue in cell.values():
-                cellData.append(cellValue)
-        data.append(cellData)
+            for cell_value in cell.values():
+                cell_data.append(cell_value)
+        data.append(cell_data)
 
     return DataFrame(data=data, columns=columns)
+
 
 def _execute_sql(cell, session):
     execute_endpoint = sql_execute_endpoint(session.get_namespace())
