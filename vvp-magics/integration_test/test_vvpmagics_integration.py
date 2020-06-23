@@ -3,7 +3,7 @@ import os
 import string
 import unittest
 import random
-from uuid import UUID
+from urllib.parse import urlparse
 
 from vvpmagics import VvpMagics
 from vvpmagics.vvpsession import VvpSession
@@ -84,7 +84,7 @@ WITH (
         sql_magic_dml_cell = """INSERT INTO {} SELECT * FROM {}""".format(table_names[0], table_names[1])
 
         response = magics.flink_sql(sql_dml_magic_line, sql_magic_dml_cell)
-        assert UUID(response, version=4)
+        assert urlparse(response)
 
 
 if __name__ == '__main__':

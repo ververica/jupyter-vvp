@@ -1,4 +1,5 @@
 import json
+
 from pandas import DataFrame
 
 
@@ -16,6 +17,10 @@ def deployment_defaults_endpoint(namespace):
 
 def sql_deployment_create_endpoint(namespace):
     return "/api/v1/namespaces/{}/deployments".format(namespace)
+
+
+def sql_deployment_endpoint(namespace, deployment_id):
+    return "/api/v1/namespaces/{}/deployments/{}".format(namespace, deployment_id)
 
 
 ddl_responses = [
@@ -55,9 +60,11 @@ def run_query(session, cell):
         return _json_convert_to_dataframe(json_data)
     if is_supported_in(dml_responses, validation_response):
         target = _get_deployment_target(session)
-        deployment_create_response = _create_deployment(cell, session, target)
-        deployment_id = json.loads(deployment_create_response.text)['metadata']['id']
-        return deployment_id
+        deployment_creation_response = _create_deployment(cell, session, target)
+        deployment_id = json.loads(deployment_creation_response.text)['metadata']['id']
+        deployment_endpoint = sql_deployment_endpoint(session.get_namespace(), deployment_id)
+        base_url = session.get_base_url()
+        return base_url + deployment_endpoint
 
     else:
         raise SqlSyntaxException("Invalid or unsupported SQL statement.", sql=cell, response=validation_response)

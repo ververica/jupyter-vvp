@@ -9,6 +9,9 @@ class HttpSession:
 
         self._session = requests.Session()
 
+    def get_base_url(self):
+        return self._base_url
+
     def get(self, path, request_headers=None):
         return self._send_request(path, 'get', request_headers)
 
