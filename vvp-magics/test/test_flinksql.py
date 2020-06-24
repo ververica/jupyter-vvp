@@ -84,12 +84,13 @@ class VvpSessionTests(unittest.TestCase):
                               url='http://localhost:8080{}'.format(sql_validate_endpoint(self.namespace)),
                               text=""" { "validationResult": "VALIDATION_RESULT_VALID_INSERT_QUERY" } """)
 
+        deployment_id = """58ea758d-02e2-4b8e-8d60-3c36c3413bf3"""
         requests_mock.request(method='post',
                               url='http://localhost:8080{}'.format(sql_deployment_create_endpoint(self.namespace)),
-                              text="""{
+                              text=("""{
   "kind" : "Deployment",
   "metadata" : {
-    "id" : "58ea758d-02e2-4b8e-8d60-3c36c3413bf3",
+    "id" : "%s",
     "name" : "INSERT INTO testTable1836f SELECT * FROM testTable22293",
     "namespace" : "default"
   },
@@ -98,7 +99,7 @@ class VvpSessionTests(unittest.TestCase):
     "deploymentTargetId" : "0b7e8f13-6943-404e-9809-c14db57d195e"
   } 
   }
-  """)
+  """ % deployment_id))
 
         requests_mock.request(method='get',
                               url='http://localhost:8080{}'.format(deployment_defaults_endpoint(self.namespace)),
@@ -107,11 +108,17 @@ class VvpSessionTests(unittest.TestCase):
                               status_code=200
                               )
 
+        requests_mock.request(method='get',
+                              url='http://localhost:8080{}/{}'.format(sql_deployment_create_endpoint(self.namespace),
+                                                                      deployment_id),
+                              text="""{"DummyKey": "DummyValue"}""",
+                              status_code=200
+                              )
+
         cell = """SOME VALID DML QUERY"""
 
         response = run_query(self.session, cell)
-        assert response == "http://localhost:8080/api/v1/namespaces/test/deployments/" \
-                           "58ea758d-02e2-4b8e-8d60-3c36c3413bf3"
+        assert response['DummyKey'] == "DummyValue"
 
     def test_flink_sql_throws_if_statement_bad(self, requests_mock):
         self._setUpSession(requests_mock)

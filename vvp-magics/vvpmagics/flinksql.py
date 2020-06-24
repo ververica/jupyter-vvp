@@ -1,5 +1,7 @@
 import json
 
+from IPython.core.display import HTML, display
+
 from vvpmagics.jsonconversion import json_convert_to_dataframe
 
 NO_DEFAULT_DEPLOYMENT_MESSAGE = "No default deployment target found."
@@ -69,8 +71,9 @@ def run_query(session, cell):
         deployment_creation_response = _create_deployment(cell, session, target)
         deployment_id = json.loads(deployment_creation_response.text)['metadata']['id']
         deployment_endpoint = sql_deployment_endpoint(session.get_namespace(), deployment_id)
-        base_url = session.get_base_url()
-        return base_url + deployment_endpoint
+        url = session.get_base_url() + deployment_endpoint
+        display(HTML("""<a href="{}">Deployment link</a>""".format(url)))
+        return json.loads(session.execute_get_request(deployment_endpoint).text)
 
     else:
         error_message = json_response['errorDetails']['message']
