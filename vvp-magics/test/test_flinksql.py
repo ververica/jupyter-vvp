@@ -95,7 +95,8 @@ class VvpSessionTests(unittest.TestCase):
 
         with self.assertRaises(FlinkSqlRequestException) as raised_exception:
             run_query(self.session, cell)
-            assert raised_exception.exception.sql == cell
+
+        assert raised_exception.exception.sql == cell
 
     def test_flink_sql_throws_if_validation_status_not_200(self, requests_mock):
         self._setUpSession(requests_mock)

@@ -117,7 +117,10 @@ def _execute_sql(cell, session):
 def _get_deployment_target(session):
     endpoint = deployment_defaults_endpoint(session.get_namespace())
     response = session.execute_get_request(endpoint)
-    return json.loads(response.text)['spec']['deploymentTargetId']
+    deployment_target_id = json.loads(response.text)["spec"].get("deploymentTargetId")
+    if deployment_target_id is None:
+        raise FlinkSqlRequestException("No default deployment target found.")
+    return deployment_target_id
 
 
 def _create_deployment(cell, session, target):
