@@ -50,6 +50,10 @@ services:
     ports:
     - '8080:8080'
     restart: unless-stopped
+  vvp-jupyter:
+    image: vvp-jupyter:latest
+    ports:
+      - '8888:8888'
   keycloak-mariadb:
     image: mariadb:10
     environment:

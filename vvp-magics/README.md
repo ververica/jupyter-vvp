@@ -70,6 +70,24 @@ See the example notebooks:
 - [Connect to VVP](./example_notebooks/ConnectToVVP.test.ipynb)
 - [DDL Commands and queries](./example_notebooks/FlinkSql.test.ipynb)
 
+## Docker setup
+
+First build the vvpmagics.zip. Then create the Docker image:
+```
+docker build . --tag vvp-jupyter:latest
+```
+Finally run docker compose to set vvp environment up:
+```
+docker-compose up vvp-gateway vvp-appmanager vvp-ui vvp-jupyter
+```
+
+To log into Jupyter, look into the docker compose output and find a line that looks like this:
+```
+http://127.0.0.1:8888/?token=814a4f1ef6a10328f25e67aeb9e5d67e381aff0b2fc7ad2b
+```
+
+In the notebook use vvp-gateway as hostname and 8080 as port. An example notebook can be found in the work folder.
+
 ## Help
 ```
 %connect_vvp?
