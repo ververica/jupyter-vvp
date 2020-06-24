@@ -70,10 +70,8 @@ def run_query(session, cell):
         target = _get_deployment_target(session)
         deployment_creation_response = _create_deployment(cell, session, target)
         deployment_id = json.loads(deployment_creation_response.text)['metadata']['id']
-        deployment_endpoint = sql_deployment_endpoint(session.get_namespace(), deployment_id)
-        url = session.get_base_url() + deployment_endpoint
-        display(HTML("""<a href="{}">Deployment link</a>""".format(url)))
-        return json.loads(session.execute_get_request(deployment_endpoint).text)
+        deployment_endpoint = _get_and_show_url(deployment_id, session)
+        return _get_deployment_data(deployment_endpoint, session)
 
     else:
         error_message = json_response['errorDetails']['message']
@@ -125,6 +123,17 @@ def _create_deployment(cell, session, target):
         }
     }
     return session.submit_post_request(endpoint=endpoint, requestbody=json.dumps(body))
+
+
+def _get_deployment_data(deployment_endpoint, session):
+    return json.loads(session.execute_get_request(deployment_endpoint).text)
+
+
+def _get_and_show_url(deployment_id, session):
+    deployment_endpoint = sql_deployment_endpoint(session.get_namespace(), deployment_id)
+    url = session.get_base_url() + deployment_endpoint
+    display(HTML("""<a href="{}">Deployment link</a>""".format(url)))
+    return deployment_endpoint
 
 
 class SqlSyntaxException(Exception):
