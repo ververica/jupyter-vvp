@@ -3,7 +3,8 @@ import json
 
 import requests_mock
 
-from vvpmagics.flinksql import run_query, _json_convert_to_dataframe, SqlSyntaxException, FlinkSqlRequestException
+from vvpmagics.flinksql import run_query, _json_convert_to_dataframe, SqlSyntaxException, FlinkSqlRequestException, \
+    NO_DEFAULT_DEPLOYMENT_MESSAGE
 from vvpmagics.vvpsession import VvpSession
 from pandas import DataFrame
 
@@ -14,6 +15,14 @@ def sql_execute_endpoint(namespace):
 
 def sql_validate_endpoint(namespace):
     return "/sql/v1beta1/namespaces/{}/sqlscripts:validate".format(namespace)
+
+
+def deployment_defaults_endpoint(namespace):
+    return "/api/v1/namespaces/{}/deployment-defaults".format(namespace)
+
+
+def sql_deployment_create_endpoint(namespace):
+    return "/api/v1/namespaces/{}/deployments".format(namespace)
 
 
 @requests_mock.Mocker()
@@ -70,6 +79,42 @@ class VvpSessionTests(unittest.TestCase):
         response = run_query(self.session, cell)
         assert response.iloc[0]['table name'] == 'testTable'
 
+    def test_flink_sql_executes_valid_dml_statement(self, requests_mock):
+        self._setUpSession(requests_mock)
+
+        requests_mock.request(method='post',
+                              url='http://localhost:8080{}'.format(sql_validate_endpoint(self.namespace)),
+                              text=""" { "validationResult": "VALIDATION_RESULT_VALID_INSERT_QUERY" } """)
+
+        requests_mock.request(method='post',
+                              url='http://localhost:8080{}'.format(sql_deployment_create_endpoint(self.namespace)),
+                              text="""{
+  "kind" : "Deployment",
+  "metadata" : {
+    "id" : "58ea758d-02e2-4b8e-8d60-3c36c3413bf3",
+    "name" : "INSERT INTO testTable1836f SELECT * FROM testTable22293",
+    "namespace" : "default"
+  },
+  "spec" : {
+    "state" : "RUNNING",
+    "deploymentTargetId" : "0b7e8f13-6943-404e-9809-c14db57d195e"
+  } 
+  }
+  """)
+
+        requests_mock.request(method='get',
+                              url='http://localhost:8080{}'.format(deployment_defaults_endpoint(self.namespace)),
+                              text=""" { "kind": "DeploymentDefaults",
+                                "spec": { "deploymentTargetId": "0b7e8f13-6943-404e-9809-c14db57d195e" } } """,
+                              status_code=200
+                              )
+
+        cell = """SOME VALID DML QUERY"""
+
+        response = run_query(self.session, cell)
+        assert response == "http://localhost:8080/api/v1/namespaces/test/deployments/" \
+                           "58ea758d-02e2-4b8e-8d60-3c36c3413bf3"
+
     def test_flink_sql_throws_if_statement_bad(self, requests_mock):
         self._setUpSession(requests_mock)
 
@@ -111,6 +156,26 @@ class VvpSessionTests(unittest.TestCase):
         with self.assertRaises(FlinkSqlRequestException) as raised_exception:
             run_query(self.session, cell)
             assert raised_exception.exception.sql == cell
+
+    def test_flink_sql_throws_if_no_default_deployment(self, requests_mock):
+        self._setUpSession(requests_mock)
+
+        requests_mock.request(method='post',
+                              url='http://localhost:8080{}'.format(sql_validate_endpoint(self.namespace)),
+                              text=""" { "validationResult": "VALIDATION_RESULT_VALID_INSERT_QUERY" } """)
+
+        requests_mock.request(method='get',
+                              url='http://localhost:8080{}'.format(deployment_defaults_endpoint(self.namespace)),
+                              text="""{ "kind": "DeploymentDefaults", "spec": {} }""",
+                              status_code=200
+                              )
+
+        cell = """SOME VALID DML QUERY"""
+
+        with self.assertRaises(FlinkSqlRequestException) as raised_exception:
+            run_query(self.session, cell)
+
+        assert raised_exception.exception.__str__() == NO_DEFAULT_DEPLOYMENT_MESSAGE
 
 
 class JsonTests(unittest.TestCase):

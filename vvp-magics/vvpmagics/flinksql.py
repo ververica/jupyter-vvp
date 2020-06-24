@@ -2,6 +2,8 @@ import json
 
 from pandas import DataFrame
 
+NO_DEFAULT_DEPLOYMENT_MESSAGE = "No default deployment target found."
+
 
 def sql_execute_endpoint(namespace):
     return "/sql/v1beta1/namespaces/{}/sqlscripts:execute".format(namespace)
@@ -119,7 +121,7 @@ def _get_deployment_target(session):
     response = session.execute_get_request(endpoint)
     deployment_target_id = json.loads(response.text)["spec"].get("deploymentTargetId")
     if deployment_target_id is None:
-        raise FlinkSqlRequestException("No default deployment target found.")
+        raise FlinkSqlRequestException(NO_DEFAULT_DEPLOYMENT_MESSAGE)
     return deployment_target_id
 
 
