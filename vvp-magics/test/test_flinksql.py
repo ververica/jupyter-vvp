@@ -1,12 +1,10 @@
 import unittest
-import json
 
 import requests_mock
 
-from vvpmagics.flinksql import run_query, _json_convert_to_dataframe, SqlSyntaxException, FlinkSqlRequestException, \
+from vvpmagics.flinksql import run_query, SqlSyntaxException, FlinkSqlRequestException, \
     NO_DEFAULT_DEPLOYMENT_MESSAGE
 from vvpmagics.vvpsession import VvpSession
-from pandas import DataFrame
 
 
 def sql_execute_endpoint(namespace):
@@ -176,37 +174,6 @@ class VvpSessionTests(unittest.TestCase):
             run_query(self.session, cell)
 
         assert raised_exception.exception.__str__() == NO_DEFAULT_DEPLOYMENT_MESSAGE
-
-
-class JsonTests(unittest.TestCase):
-    def test_json_conversion(self):
-        json_string = """{"result": "RESULT_SUCCESS_WITH_ROWS",
- "resultTable": {"headers": [{"name": "name"},
-   {"name": "type"},
-   {"name": "null"},
-   {"name": "key"},
-   {"name": "computed column"},
-   {"name": "watermark"}],
-  "rows": [{"cells": [{"value": "id"},
-     {"value": "INT"},
-     {"value": "true"},
-     {"value": ""},
-     {"value": ""},
-     {"value": ""}]}]}}"""
-
-        json_data = json.loads(json_string)
-        df = _json_convert_to_dataframe(json_data)
-        assert df.iloc[0]['name'] == 'id'
-        assert df.iloc[0]['type'] == 'INT'
-        assert df.iloc[0]['null'] == 'true'
-
-    def test_json_conversion_ignores_results_without_table(self):
-        json_string = """{"result": "RESULT_NO_TABLE"}"""
-
-        json_data = json.loads(json_string)
-        result = _json_convert_to_dataframe(json_data)
-        print(result)
-        assert result == json_data
 
 
 if __name__ == '__main__':

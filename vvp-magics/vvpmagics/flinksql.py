@@ -1,6 +1,6 @@
 import json
 
-from pandas import DataFrame
+from vvpmagics.jsonconversion import json_convert_to_dataframe
 
 NO_DEFAULT_DEPLOYMENT_MESSAGE = "No default deployment target found."
 
@@ -63,7 +63,7 @@ def run_query(session, cell):
     if is_supported_in(ddl_responses, json_response):
         execute_command_response = _execute_sql(cell, session)
         json_data = json.loads(execute_command_response.text)
-        return _json_convert_to_dataframe(json_data)
+        return json_convert_to_dataframe(json_data)
     if is_supported_in(dml_responses, json_response):
         target = _get_deployment_target(session)
         deployment_creation_response = _create_deployment(cell, session, target)
@@ -83,30 +83,6 @@ def _validate_sql(cell, session):
     body = json.dumps({"script": cell})
     validation_response = session.submit_post_request(validate_endpoint, body)
     return validation_response
-
-
-def _json_convert_to_dataframe(json_data):
-    if "resultTable" not in json_data:
-        return json_data
-
-    table = json_data["resultTable"]
-    headers = table["headers"]
-    rows = table["rows"]
-    columns = []
-    for h in headers:
-        for v in h.values():
-            columns.append(v)
-
-    data = []
-    for row in rows:
-        cells = row["cells"]
-        cell_data = []
-        for cell in cells:
-            for cell_value in cell.values():
-                cell_data.append(cell_value)
-        data.append(cell_data)
-
-    return DataFrame(data=data, columns=columns)
 
 
 def _execute_sql(cell, session):
