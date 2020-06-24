@@ -86,7 +86,7 @@ To log into Jupyter, look into the docker compose output and find a line that lo
 http://127.0.0.1:8888/?token=814a4f1ef6a10328f25e67aeb9e5d67e381aff0b2fc7ad2b
 ```
 
-In the notebook use vvp-gateway as hostname and 8080 as port.
+In the notebook use vvp-gateway as hostname and 8080 as port. An example notebook can be found in the work folder.
 
 ## Help
 ```
