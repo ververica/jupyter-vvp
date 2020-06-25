@@ -1,6 +1,7 @@
 import json
 
-from IPython.core.display import display, HTML
+from IPython.core.display import display, HTML, clear_output
+from ipywidgets import widgets
 
 NO_DEFAULT_DEPLOYMENT_MESSAGE = "No default deployment target found."
 
@@ -21,19 +22,24 @@ def vvp_deployment_detail_endpoint(namespace, deployment_id):
     return "/app/#/namespaces/{}/deployments/{}/detail/overview".format(namespace, deployment_id)
 
 
-deployment_states_warn = ["CANCELLED", "SUSPENDED"]
-deployment_states_good = ["RUNNING, FINISHED"]
-deployment_states_info = ["TRANSITIONING"]
-deployment_states_bad = ["FAILED"]
-deployment_states = deployment_states_bad + deployment_states_good + deployment_states_info + deployment_states_warn
+deployment_states = {
+    "warning": ["CANCELLED", "SUSPENDED"],
+    "success": ["RUNNING", "FINISHED"],
+    "info": ["TRANSITIONING"],
+    "danger": ["FAILED"]
+}
+
+
+def all_deployment_states():
+    return [state for states in deployment_states.values() for state in states]
 
 
 def make_deployment(cell, session):
     target = _get_deployment_target(session)
     deployment_creation_response = _create_deployment(cell, session, target)
     deployment_id = json.loads(deployment_creation_response.text)['metadata']['id']
-    _show_url(deployment_id, session)
-    return _get_deployment_state(deployment_id, session)
+    _show_output(deployment_id, session)
+    return deployment_id
 
 
 def _get_deployment_target(session):
@@ -76,19 +82,65 @@ def _get_deployment_data(deployment_id, session):
 def _get_deployment_state(deployment_id, session):
     data = _get_deployment_data(deployment_id, session)
     state = data.get("status", {}).get("state")
-    if not state or state not in deployment_states:
-        raise Exception("Unknown deployment state.")
+    if (not state) or state not in all_deployment_states():
+        raise DeploymentStateException("Could not obtain valid deployment state for deployment {}."
+                                       .format(deployment_id))
     return state
 
 
-def _show_url(deployment_id, session):
+def _show_output(deployment_id, session):
+    status_output = widgets.Output()
+    link_output = widgets.Output()
+
+    def get_button_style(state):
+        for key in deployment_states.keys():
+            if state in deployment_states[key]:
+                return key
+        return "info"
+
+    def update_button(b):
+        with status_output:
+            button.disabled = True
+            clear_output(wait=True)
+            print("Getting status...")
+            try:
+                state = _get_deployment_state(deployment_id, session)
+            except DeploymentStateException as exception:
+                button.disabled = False
+                raise exception
+            clear_output(wait=True)
+            print("Status: {}.".format(state))
+            button.button_style = get_button_style(state)
+            button.disabled = False
+
+    button = widgets.Button(
+        description="Refresh",
+        disabled=False,
+        button_style="info",  # 'success', 'info', 'warning', 'danger' or ''
+        tooltip='Click to refresh deployment status',
+        icon='refresh'
+    )
+    button.on_click(update_button)
+
     deployment_endpoint = vvp_deployment_detail_endpoint(session.get_namespace(), deployment_id)
     url = session.get_base_url() + deployment_endpoint
-    display(HTML("""<a href="{}" target="_blank">Deployment link</a>""".format(url)))
+    with link_output:
+        display(
+            HTML("""[<a href="{}" target="_blank">Click here to see the deployment in the platform.</a>]"""
+                 .format(url)))
+    with status_output:
+        print("Click button to update deployment status.")
+    display(widgets.HBox(children=(button, status_output, link_output)))
 
 
 class VvpConfigurationException(Exception):
 
     def __init__(self, message="", sql=None):
         super(VvpConfigurationException, self).__init__(message)
+        self.sql = sql
+
+
+class DeploymentStateException(Exception):
+    def __init__(self, message="", sql=None):
+        super(DeploymentStateException, self).__init__(message)
         self.sql = sql

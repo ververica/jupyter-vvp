@@ -121,12 +121,16 @@ class VvpSessionTests(unittest.TestCase):
         requests_mock.request(method='get',
                               url='http://localhost:8080{}'.format(
                                   sql_deployment_endpoint(self.namespace, deployment_id)),
-                              text="""{ "kind" : "Deployment", "status" : { "state" : "TRANSITIONING" } }""")
+                              text="""{ "kind" : "Deployment",   "status" : {
+    "state" : "RUNNING",
+    "running" : { "jobId" : "68ab92d0-1acc-459f-a6ed-26a374e08717" }
+  }
+ }""")
 
         cell = """SOME VALID DML QUERY"""
 
         response = run_query(self.session, cell)
-        assert response == "TRANSITIONING"
+        assert response == deployment_id
 
     def test_flink_sql_throws_if_statement_bad(self, requests_mock):
         self._setUpSession(requests_mock)
