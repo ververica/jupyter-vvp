@@ -36,11 +36,12 @@ def all_deployment_states():
 
 class Deployments:
 
-    def make_deployment(self, cell, session):
-        target = self._get_deployment_target(session)
-        deployment_creation_response = self._create_deployment(cell, session, target)
+    @classmethod
+    def make_deployment(cls, cell, session):
+        target = cls._get_deployment_target(session)
+        deployment_creation_response = cls._create_deployment(cell, session, target)
         deployment_id = json.loads(deployment_creation_response.text)['metadata']['id']
-        self._show_output(deployment_id, session)
+        cls._show_output(deployment_id, session)
         return deployment_id
 
     @staticmethod
@@ -89,7 +90,8 @@ class Deployments:
                                            .format(deployment_id))
         return state
 
-    def _show_output(self, deployment_id, session):
+    @classmethod
+    def _show_output(cls, deployment_id, session):
         status_output = widgets.Output()
         link_output = widgets.Output()
 
@@ -105,7 +107,7 @@ class Deployments:
                 clear_output(wait=True)
                 print("Getting status...")
                 try:
-                    state = self._get_deployment_state(deployment_id, session)
+                    state = cls._get_deployment_state(deployment_id, session)
                 except DeploymentStateException as exception:
                     button.disabled = False
                     raise exception
@@ -125,6 +127,7 @@ class Deployments:
 
         deployment_endpoint = vvp_deployment_detail_endpoint(session.get_namespace(), deployment_id)
         url = session.get_base_url() + deployment_endpoint
+
         with link_output:
             display(
                 HTML("""[<a href="{}" target="_blank">Click here to see the deployment in the platform.</a>]"""
