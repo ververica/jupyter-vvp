@@ -5,3 +5,4 @@ nbconvert~=5.6.1
 pytest
 nbformat~=5.0.6
 pandas
+ipywidgets
