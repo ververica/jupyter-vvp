@@ -44,8 +44,8 @@ class VvpSessionTests(unittest.TestCase):
         requests_mock.request(method='get',
                               url='http://localhost:8080/namespaces/v1/namespaces/{}'.format(self.namespace),
                               text="""
-        {{ "namespace": [{{ "name": "namespaces/{}" }}] }}
-        """.format(self.namespace))
+                                {{ "namespace": [{{ "name": "namespaces/{}" }}] }}
+                                """.format(self.namespace))
         self.session = VvpSession.create_session(self.vvp_base_url, self.namespace, "session1")
 
     def test_run_query_returns_command_response_for_valid_command(self, requests_mock):
@@ -56,8 +56,8 @@ class VvpSessionTests(unittest.TestCase):
 
         requests_mock.request(method='post', url='http://localhost:8080{}'.format(sql_execute_endpoint(self.namespace)),
                               text=""" {"result": "RESULT_SUCCESS_WITH_ROWS",
- "resultTable": {"headers": [{"name": "table name"}],
-  "rows": [{"cells": [{"value": "testTable"}]}]}} """)
+                                 "resultTable": {"headers": [{"name": "table name"}],
+                                  "rows": [{"cells": [{"value": "testTable"}]}]}} """)
 
         cell = """FAKE SQL COMMAND"""
 
@@ -73,8 +73,8 @@ class VvpSessionTests(unittest.TestCase):
 
         requests_mock.request(method='post', url='http://localhost:8080{}'.format(sql_execute_endpoint(self.namespace)),
                               text=""" {"result": "RESULT_SUCCESS_WITH_ROWS",
- "resultTable": {"headers": [{"name": "table name"}],
-  "rows": [{"cells": [{"value": "testTable"}]}]}} """)
+                                     "resultTable": {"headers": [{"name": "table name"}],
+                                      "rows": [{"cells": [{"value": "testTable"}]}]}} """)
 
         cell = """FAKE SQL COMMAND"""
 
@@ -91,19 +91,18 @@ class VvpSessionTests(unittest.TestCase):
         deployment_id = """58ea758d-02e2-4b8e-8d60-3c36c3413bf3"""
         requests_mock.request(method='post',
                               url='http://localhost:8080{}'.format(sql_deployment_create_endpoint(self.namespace)),
-                              text=("""{
-  "kind" : "Deployment",
-  "metadata" : {
-    "id" : "%s",
-    "name" : "INSERT INTO testTable1836f SELECT * FROM testTable22293",
-    "namespace" : "default"
-  },
-  "spec" : {
-    "state" : "RUNNING",
-    "deploymentTargetId" : "0b7e8f13-6943-404e-9809-c14db57d195e"
-  } 
-  }
-  """ % deployment_id))
+                              text=("""{ "kind" : "Deployment",
+                                 "metadata" : {
+                                   "id" : "%s",
+                                   "name" : "INSERT INTO testTable1836f SELECT * FROM testTable22293",
+                                   "namespace" : "default"
+                                 },
+                                 "spec" : {
+                                   "state" : "RUNNING",
+                                   "deploymentTargetId" : "0b7e8f13-6943-404e-9809-c14db57d195e"
+                                 } 
+                                 }
+                                 """ % deployment_id))
 
         requests_mock.request(method='get',
                               url='http://localhost:8080{}'.format(deployment_defaults_endpoint(self.namespace)),
@@ -121,11 +120,9 @@ class VvpSessionTests(unittest.TestCase):
         requests_mock.request(method='get',
                               url='http://localhost:8080{}'.format(
                                   sql_deployment_endpoint(self.namespace, deployment_id)),
-                              text="""{ "kind" : "Deployment",   "status" : {
-    "state" : "RUNNING",
-    "running" : { "jobId" : "68ab92d0-1acc-459f-a6ed-26a374e08717" }
-  }
- }""")
+                              text="""{ "kind" : "Deployment",   "status" : { "state" : "RUNNING",
+                                  "running" : { "jobId" : "68ab92d0-1acc-459f-a6ed-26a374e08717" } }
+                                }""")
 
         cell = """SOME VALID DML QUERY"""
 
