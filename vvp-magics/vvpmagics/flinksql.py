@@ -1,6 +1,6 @@
 import json
 
-from vvpmagics.deployments import make_deployment
+from vvpmagics.deployments import Deployments
 from vvpmagics.jsonconversion import json_convert_to_dataframe
 
 
@@ -52,7 +52,8 @@ def run_query(session, cell):
         json_data = json.loads(execute_command_response.text)
         return json_convert_to_dataframe(json_data)
     if is_supported_in(dml_responses, json_response):
-        return make_deployment(cell, session)
+        deployments = Deployments()
+        return deployments.make_deployment(cell, session)
 
     else:
         error_message = json_response['errorDetails']['message']
