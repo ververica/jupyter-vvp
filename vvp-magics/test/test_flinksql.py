@@ -2,8 +2,8 @@ import unittest
 
 import requests_mock
 
-from vvpmagics.flinksql import run_query, SqlSyntaxException, FlinkSqlRequestException, \
-    NO_DEFAULT_DEPLOYMENT_MESSAGE
+from vvpmagics.flinksql import run_query, SqlSyntaxException, FlinkSqlRequestException
+from vvpmagics.deployments import NO_DEFAULT_DEPLOYMENT_MESSAGE, VvpConfigurationException
 from vvpmagics.vvpsession import VvpSession
 
 
@@ -17,6 +17,10 @@ def sql_validate_endpoint(namespace):
 
 def deployment_defaults_endpoint(namespace):
     return "/api/v1/namespaces/{}/deployment-defaults".format(namespace)
+
+
+def sql_deployment_endpoint(namespace, deployment_id):
+    return "/api/v1/namespaces/{}/deployments/{}".format(namespace, deployment_id)
 
 
 def sql_deployment_create_endpoint(namespace):
@@ -114,11 +118,15 @@ class VvpSessionTests(unittest.TestCase):
                               text="""{"DummyKey": "DummyValue"}""",
                               status_code=200
                               )
+        requests_mock.request(method='get',
+                              url='http://localhost:8080{}'.format(
+                                  sql_deployment_endpoint(self.namespace, deployment_id)),
+                              text="""{ "kind" : "Deployment", "status" : { "state" : "TRANSITIONING" } }""")
 
         cell = """SOME VALID DML QUERY"""
 
         response = run_query(self.session, cell)
-        assert response['DummyKey'] == "DummyValue"
+        assert response == "TRANSITIONING"
 
     def test_flink_sql_throws_if_statement_bad(self, requests_mock):
         self._setUpSession(requests_mock)
@@ -177,7 +185,7 @@ class VvpSessionTests(unittest.TestCase):
 
         cell = """SOME VALID DML QUERY"""
 
-        with self.assertRaises(FlinkSqlRequestException) as raised_exception:
+        with self.assertRaises(VvpConfigurationException) as raised_exception:
             run_query(self.session, cell)
 
         assert raised_exception.exception.__str__() == NO_DEFAULT_DEPLOYMENT_MESSAGE

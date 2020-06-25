@@ -1,10 +1,7 @@
 import json
 
-from IPython.core.display import HTML, display
-
+from vvpmagics.deployments import make_deployment
 from vvpmagics.jsonconversion import json_convert_to_dataframe
-
-NO_DEFAULT_DEPLOYMENT_MESSAGE = "No default deployment target found."
 
 
 def sql_execute_endpoint(namespace):
@@ -13,18 +10,6 @@ def sql_execute_endpoint(namespace):
 
 def sql_validate_endpoint(namespace):
     return "/sql/v1beta1/namespaces/{}/sqlscripts:validate".format(namespace)
-
-
-def deployment_defaults_endpoint(namespace):
-    return "/api/v1/namespaces/{}/deployment-defaults".format(namespace)
-
-
-def sql_deployment_create_endpoint(namespace):
-    return "/api/v1/namespaces/{}/deployments".format(namespace)
-
-
-def sql_deployment_endpoint(namespace, deployment_id):
-    return "/api/v1/namespaces/{}/deployments/{}".format(namespace, deployment_id)
 
 
 ddl_responses = [
@@ -67,11 +52,7 @@ def run_query(session, cell):
         json_data = json.loads(execute_command_response.text)
         return json_convert_to_dataframe(json_data)
     if is_supported_in(dml_responses, json_response):
-        target = _get_deployment_target(session)
-        deployment_creation_response = _create_deployment(cell, session, target)
-        deployment_id = json.loads(deployment_creation_response.text)['metadata']['id']
-        deployment_endpoint = _get_and_show_url(deployment_id, session)
-        return _get_deployment_data(deployment_endpoint, session)
+        return make_deployment(cell, session)
 
     else:
         error_message = json_response['errorDetails']['message']
@@ -91,49 +72,6 @@ def _execute_sql(cell, session):
     body = json.dumps({"statement": cell})
     execute_response = session.submit_post_request(execute_endpoint, body)
     return execute_response
-
-
-def _get_deployment_target(session):
-    endpoint = deployment_defaults_endpoint(session.get_namespace())
-    response = session.execute_get_request(endpoint)
-    deployment_target_id = json.loads(response.text)["spec"].get("deploymentTargetId")
-    if deployment_target_id is None:
-        raise FlinkSqlRequestException(NO_DEFAULT_DEPLOYMENT_MESSAGE)
-    return deployment_target_id
-
-
-def _create_deployment(cell, session, target):
-    endpoint = sql_deployment_create_endpoint(session.get_namespace())
-    deployment_name = cell
-    body = {
-        "metadata": {
-            "name": deployment_name,
-            "annotations": {"license/testing": False}
-        },
-        "spec": {
-            "deploymentTargetId": target,
-            "template": {
-                "spec": {
-                    "artifact": {
-                        "kind": "SQLSCRIPT",
-                        "sqlScript": cell
-                    }
-                }
-            }
-        }
-    }
-    return session.submit_post_request(endpoint=endpoint, requestbody=json.dumps(body))
-
-
-def _get_deployment_data(deployment_endpoint, session):
-    return json.loads(session.execute_get_request(deployment_endpoint).text)
-
-
-def _get_and_show_url(deployment_id, session):
-    deployment_endpoint = sql_deployment_endpoint(session.get_namespace(), deployment_id)
-    url = session.get_base_url() + deployment_endpoint
-    display(HTML("""<a href="{}">Deployment link</a>""".format(url)))
-    return deployment_endpoint
 
 
 class SqlSyntaxException(Exception):
