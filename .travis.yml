@@ -5,4 +5,9 @@ before_script: cd vvp-magics
 script:
   - python -m unittest
   - python setup.py sdist
-  
+
+jobs:
+  include:
+    language: docker
+    script:
+      - docker build -t vvp-jupyter .
