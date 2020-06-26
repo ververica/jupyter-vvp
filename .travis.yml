@@ -8,6 +8,7 @@ script:
 
 jobs:
   include:
-    language: docker
+  - language: ruby
+    services: docker
     script:
       - docker build -t vvp-jupyter .
