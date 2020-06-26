@@ -68,7 +68,7 @@ and finding the object from the local user scope by name.
 See the example notebooks:
 
 - [Connect to VVP](./example_notebooks/ConnectToVVP.test.ipynb)
-- [DDL Commands and queries](./example_notebooks/FlinkSql.test.ipynb)
+- [DDL and DML commands and queries](./example_notebooks/FlinkSql.test.ipynb)
 
 ## Docker setup
 

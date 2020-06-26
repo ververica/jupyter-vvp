@@ -83,6 +83,13 @@ class VvpSession:
         )
         return request
 
+    def execute_get_request(self, endpoint):
+        request = self._http_session.get(path=endpoint, request_headers={"Content-Type": "application/json"})
+        return request
+
+    def get_base_url(self):
+        return self._http_session.get_base_url()
+
 
 class SessionException(Exception):
 

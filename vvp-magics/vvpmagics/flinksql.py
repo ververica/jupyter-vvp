@@ -1,5 +1,8 @@
 import json
-from pandas import DataFrame
+
+from vvpmagics.deployments import make_deployment
+from vvpmagics.jsonconversion import json_convert_to_dataframe
+
 
 def sql_execute_endpoint(namespace):
     return "/sql/v1beta1/namespaces/{}/sqlscripts:execute".format(namespace)
@@ -9,16 +12,20 @@ def sql_validate_endpoint(namespace):
     return "/sql/v1beta1/namespaces/{}/sqlscripts:validate".format(namespace)
 
 
-sql_validate_supported_responses = [
+ddl_responses = [
     "VALIDATION_RESULT_VALID_DDL_STATEMENT",
     "VALIDATION_RESULT_VALID_COMMAND_STATEMENT"
 ]
+dml_responses = [
+    "VALIDATION_RESULT_VALID_INSERT_QUERY"
+]
 sql_validate_possible_responses = \
-    sql_validate_supported_responses + [
+    ddl_responses + \
+    dml_responses + \
+    [
         "VALIDATION_RESULT_INVALID",
         "VALIDATION_RESULT_INVALID_QUERY",
         "VALIDATION_RESULT_UNSUPPORTED_QUERY",
-        "VALIDATION_RESULT_VALID_INSERT_QUERY",
         "VALIDATION_RESULT_VALID_SELECT_QUERY"
     ]
 
@@ -27,8 +34,8 @@ def is_invalid_request(response):
     return response['validationResult'] not in sql_validate_possible_responses
 
 
-def is_supported_sql_command(response):
-    return response['validationResult'] in sql_validate_supported_responses
+def is_supported_in(responses, response):
+    return response['validationResult'] in responses
 
 
 def run_query(session, cell):
@@ -40,10 +47,13 @@ def run_query(session, cell):
     if is_invalid_request(json_response):
         raise FlinkSqlRequestException("Unknown validation result: {}".format(json_response['validationResult']),
                                        sql=cell)
-    if is_supported_sql_command(json_response):
+    if is_supported_in(ddl_responses, json_response):
         execute_command_response = _execute_sql(cell, session)
         json_data = json.loads(execute_command_response.text)
-        return _json_convert_to_dataframe(json_data)
+        return json_convert_to_dataframe(json_data)
+    if is_supported_in(dml_responses, json_response):
+        return make_deployment(cell, session)
+
     else:
         error_message = json_response['errorDetails']['message']
         raise SqlSyntaxException("Invalid or unsupported SQL statement: {}"
@@ -55,30 +65,6 @@ def _validate_sql(cell, session):
     body = json.dumps({"script": cell})
     validation_response = session.submit_post_request(validate_endpoint, body)
     return validation_response
-
-
-def _json_convert_to_dataframe(json_data):
-    if "resultTable" not in json_data:
-        return json_data
-
-    table = json_data["resultTable"]
-    headers = table["headers"]
-    rows = table["rows"]
-    columns = []
-    for h in headers:
-        for v in h.values():
-            columns.append(v)
-
-    data = []
-    for row in rows:
-        cells = row["cells"]
-        cell_data = []
-        for cell in cells:
-            for cell_value in cell.values():
-                cell_data.append(cell_value)
-        data.append(cell_data)
-
-    return DataFrame(data=data, columns=columns)
 
 
 def _execute_sql(cell, session):
