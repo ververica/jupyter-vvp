@@ -1,15 +1,9 @@
-
-
-jobs:
-  include:
-    - language: python
-      install:
-        - pip install -r vvp-magics/requirements.txt
-      before_script: cd vvp-magics
-      script:
-        - python -m unittest
-        - python setup.py sdist
-    - language: ruby
-      services: docker
-      script:
-        - docker build -t vvp-jupyter .
+language: python
+services: docker
+install:
+  - pip install -r vvp-magics/requirements.txt
+before_script: cd vvp-magics
+script:
+  - python -m unittest
+  - python setup.py sdist
+  - docker build -t vvp-magics/vvp-jupyter .
