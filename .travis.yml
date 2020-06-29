@@ -20,3 +20,5 @@ before_deploy:
 deploy:
   provider: script
   script: scripts/deploy.sh
+  on:
+    branches: push_docker_image
