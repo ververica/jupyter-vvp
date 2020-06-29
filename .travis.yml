@@ -1,9 +1,26 @@
 language: python
 services: docker
+
+before_install:
+- sudo ./scripts/install-gcloud-and-kubectl.sh
+
 install:
-  - pip install -r vvp-magics/requirements.txt
-before_script: cd vvp-magics
+- pip install -r vvp-magics/requirements.txt
+
+before_deploy:
+- cd vvp-magics
+- docker build -t vvp-magics/vvp-jupyter:latest .
+- openssl aes-256-cbc -K $encrypted_d494f7f4ce3b_key -iv $encrypted_d494f7f4ce3b_iv
+  -in scripts/gcp-client-secret.json.enc -out $HOME/gcp-client-secret.json -d
+- gcloud --quiet auth activate-service-account --key-file $HOME/gcp-client-secret.json
+- gcloud --quiet auth configure-docker
+
 script:
-  - python -m unittest
-  - python setup.py sdist
-  - docker build -t vvp-magics/vvp-jupyter .
+- python -m unittest
+- python setup.py sdist
+
+deploy:
+  provider: script
+  script: scripts/deploy.sh
+  on:
+    branch: master
