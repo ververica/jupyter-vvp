@@ -1,13 +1,11 @@
 language: python
 services: docker
 
-before_install:
-- sudo ./scripts/install_gcloud.sh
-
 install:
 - pip install -r vvp-magics/requirements.txt
 
 before_deploy:
+- sudo ./scripts/install_gcloud.sh
 - cd vvp-magics
 - docker build -t vvp-magics/vvp-jupyter:latest .
 - openssl aes-256-cbc -K $encrypted_6d931d8515f6_key -iv $encrypted_6d931d8515f6_iv
