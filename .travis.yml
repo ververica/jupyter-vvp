@@ -2,7 +2,7 @@ language: python
 services: docker
 
 before_install:
-- sudo ./scripts/install-gcloud-and-kubectl.sh
+- sudo ./scripts/install-gcloud.sh
 
 install:
 - pip install -r vvp-magics/requirements.txt
