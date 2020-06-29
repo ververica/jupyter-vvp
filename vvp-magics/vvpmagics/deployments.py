@@ -64,6 +64,7 @@ class Deployments:
             },
             "spec": {
                 "deploymentTargetId": target,
+                "state": "RUNNING",
                 "template": {
                     "spec": {
                         "artifact": {
