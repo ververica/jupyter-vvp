@@ -13,6 +13,7 @@ script:
 deploy:
   provider: script
   script: scripts/deploy.sh
+  skip_cleanup: true
   on:
     all_branches: true
     condition: $TRAVIS_BRANCH =~ ^(master|release-.*|push.*)$ || -n $TRAVIS_TAG
