@@ -113,7 +113,7 @@ class DeploymentTests(unittest.TestCase):
 
         assert raised_exception.exception.__str__() == NO_DEFAULT_DEPLOYMENT_MESSAGE
 
-    def test_set_values_from_parameters(self, requests_mock):
+    def test_set_values_from_flat_parameters(self, requests_mock):
         dictionary = {
             "initialkey1": "initialvalue1",
             "initialkey2": {
@@ -138,7 +138,7 @@ class DeploymentTests(unittest.TestCase):
                 "initialsubkey2": "newsubvalue2"
             }}
 
-        Deployments.set_values_from_parameters(dictionary, parameters)
+        Deployments.set_values_from_flat_parameters(dictionary, parameters)
         self.assertEqual(dictionary, expected_dictionary)
 
     def test_get_deployment_parameters_returns_default_if_none_given(self, requests_mock):
@@ -164,7 +164,7 @@ class DeploymentTests(unittest.TestCase):
         parameters = Deployments.get_deployment_parameters(shell, args)
         assert parameters == {"mykey": "myvalue"}
 
-    def test_set_values_from_parameters_throws_if_flattened_parameters_bad(self, requests_mock):
+    def test_set_values_from_flat_parameters_throws_if_flattened_parameters_bad(self, requests_mock):
         dictionary = {}
         parameters = {
             "key": "value",
@@ -172,4 +172,28 @@ class DeploymentTests(unittest.TestCase):
         }
 
         with self.assertRaises(VvpParameterException) as exception:
-            Deployments.set_values_from_parameters(dictionary, parameters)
+            Deployments.set_values_from_flat_parameters(dictionary, parameters)
+
+    def test_set_flink_parameters_sets_correct_parameters(self, requests_mock):
+        dictionary = {"key": "value",
+                      "spec": {
+                          "dummykey": "dummyvalue"
+                      }}
+        flink_parameters = {
+            "flink.setting": "settingvalue"
+        }
+        expected_dictionary = {
+            "key":  "value",
+            "spec": {
+                "dummykey": "dummyvalue",
+                "template": {
+                    "spec": {
+                        "flinkConfiguration": {
+                            "flink.setting": "settingvalue"
+                        }
+                    }
+                }
+            }
+        }
+        Deployments.set_flink_parameters(dictionary, flink_parameters)
+        assert dictionary == expected_dictionary

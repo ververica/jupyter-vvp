@@ -80,18 +80,22 @@ class Deployments:
         }
         base_body['metadata']['name'] = cell
         base_body['spec']['deploymentTargetId'] = cls._get_deployment_target(session)
-        cls.set_values_from_parameters(base_body, required_default_parameters)
+        cls.set_values_from_flat_parameters(base_body, required_default_parameters)
 
         if override_parameters is not None:
-            cls.set_values_from_parameters(base_body, override_parameters)
+            cls.set_values_from_flat_parameters(base_body, override_parameters.get('deployment', {}))
+            if base_body.get("spec", {}).get("template", {}).get("spec", {}).get("flinkConfiguration", None):
+                raise VvpParameterException("Flink settings should not be specified in 'deployment',"
+                                            "but instead in 'flink'.")
+            cls.set_flink_parameters(base_body, override_parameters.get('flink', {}))
 
         return base_body
 
     @classmethod
-    def set_values_from_parameters(cls, base_body, parameters):
+    def set_values_from_flat_parameters(cls, base_body, parameters):
         try:
             for key in parameters.keys():
-                cls._set_value_for_key(base_body, parameters, key)
+                cls._set_value_from_flattened_key(base_body, parameters, key)
         except VvpParameterException as exception:
             raise exception
         except Exception as exception:
@@ -99,30 +103,37 @@ class Deployments:
                                         "Your parameters may be invalid. "
                                         "({})".format(exception.__str__()))
 
-    @staticmethod
-    def _set_value_for_key(dictionary, parameters, flattened_key):
+    @classmethod
+    def set_flink_parameters(cls, base_body, parameters):
+        for key in parameters.keys():
+            cls.set_value_in_dict(base_body, ["spec", "template", "spec", "flinkConfiguration", key], parameters[key])
+
+    @classmethod
+    def _set_value_from_flattened_key(cls, dictionary, parameters, flattened_key):
         value = parameters.get(flattened_key)
 
-        def create_nested_entry(keys):
-            if len(keys) == 1:
-                return value
-            return {keys[1]: create_nested_entry(keys[1:])}
-
-        def set_value(sub_dictionary, keys):
-            try:
-                if sub_dictionary.get(keys[0]) is None:
-                    sub_dictionary[keys[0]] = create_nested_entry(keys)
-                else:
-                    if len(keys) == 1:
-                        sub_dictionary[keys[0]] = value
-                    else:
-                        set_value(sub_dictionary[keys[0]], keys[1:])
-            except AttributeError as exception:
-                raise VvpParameterException("Bad parameters: "
-                                            "you may be trying to set a subkey value on an already set scalar. ")
-
         listed_keys = flattened_key.split(".")
-        set_value(dictionary, listed_keys)
+        cls.set_value_in_dict(dictionary, listed_keys, value)
+
+    @classmethod
+    def set_value_in_dict(cls, sub_dictionary, keys, value):
+        try:
+            if sub_dictionary.get(keys[0]) is None:
+                sub_dictionary[keys[0]] = cls.create_nested_entry(keys, value)
+            else:
+                if len(keys) == 1:
+                    sub_dictionary[keys[0]] = value
+                else:
+                    cls.set_value_in_dict(sub_dictionary[keys[0]], keys[1:], value)
+        except AttributeError as exception:
+            raise VvpParameterException("Bad parameters {}, {}".format(keys, value) +
+                                        ": you may be trying to set a subkey value on an already set scalar. ")
+
+    @classmethod
+    def create_nested_entry(cls, keys, value):
+        if len(keys) == 1:
+            return value
+        return {keys[1]: cls.create_nested_entry(keys[1:], value)}
 
     @staticmethod
     def _get_deployment_data(deployment_id, session):

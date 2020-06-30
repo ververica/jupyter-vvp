@@ -3,7 +3,7 @@ from IPython.core.magic_arguments import magic_arguments, argument, parse_argstr
 from IPython import get_ipython
 import sys
 
-from vvpmagics.flinksql import run_query, SqlSyntaxException
+from vvpmagics.flinksql import run_query
 from vvpmagics.vvpsession import VvpSession
 
 from pandas import DataFrame
