@@ -16,4 +16,4 @@ deploy:
   skip_cleanup: true
   on:
     all_branches: true
-    condition: $TRAVIS_BRANCH =~ ^(master|release-.*|push.*)$ || -n $TRAVIS_TAG
+    condition: $TRAVIS_BRANCH =~ ^(master|release-.*)$ || -n $TRAVIS_TAG
