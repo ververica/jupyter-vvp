@@ -3,8 +3,6 @@ import json
 from vvpmagics.deployments import Deployments
 from vvpmagics.jsonconversion import json_convert_to_dataframe
 
-DEFAULT_VVP_PARAMETERS_VARIABLE = "vvp_default_parameters"
-
 
 def sql_execute_endpoint(namespace):
     return "/sql/v1beta1/namespaces/{}/sqlscripts:execute".format(namespace)
@@ -54,23 +52,12 @@ def run_query(session, cell, shell, args):
         json_data = json.loads(execute_command_response.text)
         return json_convert_to_dataframe(json_data)
     if is_supported_in(dml_responses, json_response):
-        parameters = get_deployment_parameters(shell, args)
-        return Deployments.make_deployment(cell, session, parameters)
+        return Deployments.make_deployment(cell, session, shell, args)
 
     else:
         error_message = json_response['errorDetails']['message']
         raise SqlSyntaxException("Invalid or unsupported SQL statement: {}"
                                  .format(error_message), sql=cell, response=validation_response)
-
-
-def get_deployment_parameters(shell, args):
-    if shell is None:
-        return None
-
-    parameters_variable = DEFAULT_VVP_PARAMETERS_VARIABLE
-    if args.parameters is not None:
-        parameters_variable = args.parameters
-    return shell.user_ns.get(parameters_variable, None)
 
 
 def _validate_sql(cell, session):

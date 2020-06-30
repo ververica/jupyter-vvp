@@ -4,6 +4,7 @@ from IPython.core.display import display, HTML, clear_output
 from ipywidgets import widgets
 
 NO_DEFAULT_DEPLOYMENT_MESSAGE = "No default deployment target found."
+DEFAULT_VVP_PARAMETERS_VARIABLE = "vvp_default_parameters"
 
 required_default_parameters = {
     "metadata.annotations.license/testing": False
@@ -41,8 +42,8 @@ def all_deployment_states():
 class Deployments:
 
     @classmethod
-    def make_deployment(cls, cell, session, parameters=None):
-        target = cls._get_deployment_target(session)
+    def make_deployment(cls, cell, session, shell, args):
+        parameters = cls.get_deployment_parameters(shell, args)
         endpoint = sql_deployment_create_endpoint(session.get_namespace())
         body = cls._build_deployment_request(cell, session, parameters)
         deployment_creation_response = session.submit_post_request(endpoint=endpoint, requestbody=json.dumps(body))
@@ -60,7 +61,7 @@ class Deployments:
         return deployment_target_id
 
     @classmethod
-    def _build_deployment_request(cls, cell, session, parameters):
+    def _build_deployment_request(cls, cell, session, override_parameters):
         base_body = {
             "metadata": {
                 "annotations": {}
@@ -81,8 +82,8 @@ class Deployments:
         base_body['spec']['deploymentTargetId'] = cls._get_deployment_target(session)
         cls.set_values_from_parameters(base_body, required_default_parameters)
 
-        if parameters is not None:
-            cls.set_values_from_parameters(base_body, parameters)
+        if override_parameters is not None:
+            cls.set_values_from_parameters(base_body, override_parameters)
 
         return base_body
 
@@ -127,6 +128,16 @@ class Deployments:
     def _get_deployment_data(deployment_id, session):
         deployment_endpoint = sql_deployment_endpoint(session.get_namespace(), deployment_id)
         return json.loads(session.execute_get_request(deployment_endpoint).text)
+
+    @staticmethod
+    def get_deployment_parameters(shell, args):
+        if shell is None:
+            return None
+
+        parameters_variable = DEFAULT_VVP_PARAMETERS_VARIABLE
+        if args.parameters is not None:
+            parameters_variable = args.parameters
+        return shell.user_ns.get(parameters_variable, None)
 
     @classmethod
     def _get_deployment_state(cls, deployment_id, session):

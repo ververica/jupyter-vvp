@@ -2,8 +2,9 @@ import unittest
 
 import requests_mock
 
+from test.testmocks import ShellMock, ArgsMock
 from vvpmagics.deployments import NO_DEFAULT_DEPLOYMENT_MESSAGE, VvpConfigurationException, Deployments, \
-    VvpParameterException
+    VvpParameterException, DEFAULT_VVP_PARAMETERS_VARIABLE
 from vvpmagics.vvpsession import VvpSession
 
 
@@ -89,7 +90,7 @@ class DeploymentTests(unittest.TestCase):
 
         cell = """SOME VALID DML QUERY"""
 
-        response = Deployments().make_deployment(cell, self.session)
+        response = Deployments().make_deployment(cell, self.session, ShellMock({}), ArgsMock(None))
         assert response == deployment_id
 
     def test_make_deployment_throws_if_no_default_deployment(self, requests_mock):
@@ -108,7 +109,7 @@ class DeploymentTests(unittest.TestCase):
         cell = """SOME VALID DML QUERY"""
 
         with self.assertRaises(VvpConfigurationException) as raised_exception:
-            Deployments().make_deployment(cell, self.session)
+            Deployments().make_deployment(cell, self.session, ShellMock({}), ArgsMock(None))
 
         assert raised_exception.exception.__str__() == NO_DEFAULT_DEPLOYMENT_MESSAGE
 
@@ -139,6 +140,29 @@ class DeploymentTests(unittest.TestCase):
 
         Deployments.set_values_from_parameters(dictionary, parameters)
         self.assertEqual(dictionary, expected_dictionary)
+
+    def test_get_deployment_parameters_returns_default_if_none_given(self, requests_mock):
+        args = ArgsMock(None)
+        shell = ShellMock({DEFAULT_VVP_PARAMETERS_VARIABLE: {
+            "key": "value"
+        }})
+
+        parameters = Deployments.get_deployment_parameters(shell, args)
+        assert parameters == {"key": "value"}
+
+    def test_get_deployment_parameters_returns_correct_even_if_default_set(self, requests_mock):
+        args = ArgsMock(parameters="myparams")
+        shell = ShellMock({
+            DEFAULT_VVP_PARAMETERS_VARIABLE: {
+                "key": "value"
+            },
+            "myparams": {
+                "mykey": "myvalue"
+            }
+        })
+
+        parameters = Deployments.get_deployment_parameters(shell, args)
+        assert parameters == {"mykey": "myvalue"}
 
     def test_set_values_from_parameters_throws_if_flattened_parameters_bad(self, requests_mock):
         dictionary = {}
