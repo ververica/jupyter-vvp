@@ -2,7 +2,8 @@ import unittest
 
 import requests_mock
 
-from vvpmagics.deployments import NO_DEFAULT_DEPLOYMENT_MESSAGE, VvpConfigurationException, Deployments
+from vvpmagics.deployments import NO_DEFAULT_DEPLOYMENT_MESSAGE, VvpConfigurationException, Deployments, \
+    VvpParameterException
 from vvpmagics.vvpsession import VvpSession
 
 
@@ -138,3 +139,13 @@ class DeploymentTests(unittest.TestCase):
 
         Deployments.set_values_from_parameters(dictionary, parameters)
         self.assertEqual(dictionary, expected_dictionary)
+
+    def test_set_values_from_parameters_throws_if_flattened_parameters_bad(self, requests_mock):
+        dictionary = {}
+        parameters = {
+            "key": "value",
+            "key.subkey": "subvalue"
+        }
+
+        with self.assertRaises(VvpParameterException) as exception:
+            Deployments.set_values_from_parameters(dictionary, parameters)

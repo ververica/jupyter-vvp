@@ -88,8 +88,15 @@ class Deployments:
 
     @classmethod
     def set_values_from_parameters(cls, base_body, parameters):
-        for key in parameters.keys():
-            cls._set_value_for_key(base_body, parameters, key)
+        try:
+            for key in parameters.keys():
+                cls._set_value_for_key(base_body, parameters, key)
+        except VvpParameterException as exception:
+            raise exception
+        except Exception as exception:
+            raise VvpParameterException("Error converting parameters for job submission. "
+                                        "Your parameters may be invalid. "
+                                        "({})".format(exception.__str__()))
 
     @staticmethod
     def _set_value_for_key(dictionary, parameters, flattened_key):
@@ -101,13 +108,17 @@ class Deployments:
             return {keys[1]: create_nested_entry(keys[1:])}
 
         def set_value(sub_dictionary, keys):
-            if sub_dictionary.get(keys[0]) is None:
-                sub_dictionary[keys[0]] = create_nested_entry(keys)
-            else:
-                if len(keys) == 1:
-                    sub_dictionary[keys[0]] = value
+            try:
+                if sub_dictionary.get(keys[0]) is None:
+                    sub_dictionary[keys[0]] = create_nested_entry(keys)
                 else:
-                    set_value(sub_dictionary[keys[0]], keys[1:])
+                    if len(keys) == 1:
+                        sub_dictionary[keys[0]] = value
+                    else:
+                        set_value(sub_dictionary[keys[0]], keys[1:])
+            except AttributeError as exception:
+                raise VvpParameterException("Bad parameters: "
+                                            "you may be trying to set a subkey value on an already set scalar. ")
 
         listed_keys = flattened_key.split(".")
         set_value(dictionary, listed_keys)
@@ -177,6 +188,13 @@ class VvpConfigurationException(Exception):
 
     def __init__(self, message="", sql=None):
         super(VvpConfigurationException, self).__init__(message)
+        self.sql = sql
+
+
+class VvpParameterException(Exception):
+
+    def __init__(self, message="", sql=None):
+        super(VvpParameterException, self).__init__(message)
         self.sql = sql
 
 
