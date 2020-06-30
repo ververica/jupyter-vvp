@@ -183,7 +183,7 @@ class DeploymentTests(unittest.TestCase):
             "flink.setting": "settingvalue"
         }
         expected_dictionary = {
-            "key":  "value",
+            "key": "value",
             "spec": {
                 "dummykey": "dummyvalue",
                 "template": {
@@ -197,3 +197,23 @@ class DeploymentTests(unittest.TestCase):
         }
         Deployments.set_flink_parameters(dictionary, flink_parameters)
         assert dictionary == expected_dictionary
+
+    def test_build_deployment_request_throws_if_flink_params_set_early(self, requests_mock):
+        self._setUpSession(requests_mock)
+
+        requests_mock.request(method='get',
+                              url='http://localhost:8080{}'.format(deployment_defaults_endpoint(self.namespace)),
+                              text=""" { "kind": "DeploymentDefaults",
+                                "spec": { "deploymentTargetId": "0b7e8f13-6943-404e-9809-c14db57d195e" } } """,
+                              status_code=200
+                              )
+
+        parameters = {
+            "deployment": {
+                "spec.template.spec.flinkConfiguration": "anything"
+            }
+        }
+        dummy_cell = "some cell content"
+
+        with self.assertRaises(VvpParameterException):
+            Deployments._build_deployment_request(dummy_cell, self.session, parameters)
