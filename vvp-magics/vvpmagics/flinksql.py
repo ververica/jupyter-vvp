@@ -3,6 +3,8 @@ import json
 from vvpmagics.deployments import Deployments
 from vvpmagics.jsonconversion import json_convert_to_dataframe
 
+DEFAULT_VVP_PARAMETERS_VARIABLE = "vvp_default_parameters"
+
 
 def sql_execute_endpoint(namespace):
     return "/sql/v1beta1/namespaces/{}/sqlscripts:execute".format(namespace)
@@ -38,7 +40,7 @@ def is_supported_in(responses, response):
     return response['validationResult'] in responses
 
 
-def run_query(session, cell):
+def run_query(session, cell, shell, args):
     validation_response = _validate_sql(cell, session)
     if validation_response.status_code != 200:
         raise FlinkSqlRequestException("Bad HTTP request, return code {}".format(validation_response.status_code),
@@ -52,12 +54,23 @@ def run_query(session, cell):
         json_data = json.loads(execute_command_response.text)
         return json_convert_to_dataframe(json_data)
     if is_supported_in(dml_responses, json_response):
-        return Deployments.make_deployment(cell, session)
+        parameters = get_deployment_parameters(shell, args)
+        return Deployments.make_deployment(cell, session, parameters)
 
     else:
         error_message = json_response['errorDetails']['message']
         raise SqlSyntaxException("Invalid or unsupported SQL statement: {}"
                                  .format(error_message), sql=cell, response=validation_response)
+
+
+def get_deployment_parameters(shell, args):
+    if shell is None:
+        return None
+
+    parameters_variable = DEFAULT_VVP_PARAMETERS_VARIABLE
+    if args.parameters is not None:
+        parameters_variable = args.parameters
+    return shell.user_ns.get(parameters_variable, None)
 
 
 def _validate_sql(cell, session):

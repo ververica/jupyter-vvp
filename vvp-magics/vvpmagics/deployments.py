@@ -41,10 +41,10 @@ def all_deployment_states():
 class Deployments:
 
     @classmethod
-    def make_deployment(cls, cell, session):
+    def make_deployment(cls, cell, session, parameters=None):
         target = cls._get_deployment_target(session)
         endpoint = sql_deployment_create_endpoint(session.get_namespace())
-        body = cls._build_deployment_request(cell, session, None)
+        body = cls._build_deployment_request(cell, session, parameters)
         deployment_creation_response = session.submit_post_request(endpoint=endpoint, requestbody=json.dumps(body))
         deployment_id = json.loads(deployment_creation_response.text)['metadata']['id']
         cls._show_output(deployment_id, session)
