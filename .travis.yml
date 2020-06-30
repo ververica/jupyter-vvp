@@ -1,11 +1,19 @@
 language: python
-install:
-  - pip install -r vvp-magics/requirements.txt
-before_script: cd vvp-magics
-script:
-  - python -m unittest
-  - python setup.py sdist
+services: docker
 
-before_deploy:
-- openssl aes-256-cbc -K $encrypted_6d931d8515f6_key -iv $encrypted_6d931d8515f6_iv
-  -in scripts/gcp-client-secret.json.enc -out $HOME/gcp-client-secret.json -d
+install:
+- pip install -r vvp-magics/requirements.txt
+
+script:
+- cd vvp-magics
+- python -m unittest
+- python setup.py sdist
+- docker build -t eu.gcr.io/vvp-devel-240810/vvp-jupyter:latest .
+
+deploy:
+  provider: script
+  script: bash ../scripts/deploy.sh
+  skip_cleanup: true
+  on:
+    all_branches: true
+    condition: $TRAVIS_BRANCH =~ ^(master|release-.*)$ || -n $TRAVIS_TAG
