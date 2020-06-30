@@ -5,6 +5,10 @@ from ipywidgets import widgets
 
 NO_DEFAULT_DEPLOYMENT_MESSAGE = "No default deployment target found."
 
+required_default_parameters = {
+    "metadata.annotations.license/testing": False
+}
+
 
 def deployment_defaults_endpoint(namespace):
     return "/api/v1/namespaces/{}/deployment-defaults".format(namespace)
@@ -39,7 +43,9 @@ class Deployments:
     @classmethod
     def make_deployment(cls, cell, session):
         target = cls._get_deployment_target(session)
-        deployment_creation_response = cls._create_deployment(cell, session, target)
+        endpoint = sql_deployment_create_endpoint(session.get_namespace())
+        body = cls._build_deployment_request(cell, session, None)
+        deployment_creation_response = session.submit_post_request(endpoint=endpoint, requestbody=json.dumps(body))
         deployment_id = json.loads(deployment_creation_response.text)['metadata']['id']
         cls._show_output(deployment_id, session)
         return deployment_id
@@ -53,17 +59,13 @@ class Deployments:
             raise VvpConfigurationException(NO_DEFAULT_DEPLOYMENT_MESSAGE)
         return deployment_target_id
 
-    @staticmethod
-    def _create_deployment(cell, session, target):
-        endpoint = sql_deployment_create_endpoint(session.get_namespace())
-        deployment_name = cell
-        body = {
+    @classmethod
+    def _build_deployment_request(cls, cell, session, parameters):
+        base_body = {
             "metadata": {
-                "name": deployment_name,
-                "annotations": {"license/testing": False}
+                "annotations": {}
             },
             "spec": {
-                "deploymentTargetId": target,
                 "state": "RUNNING",
                 "template": {
                     "spec": {
@@ -75,7 +77,40 @@ class Deployments:
                 }
             }
         }
-        return session.submit_post_request(endpoint=endpoint, requestbody=json.dumps(body))
+        base_body['metadata']['name'] = cell
+        base_body['spec']['deploymentTargetId'] = cls._get_deployment_target(session)
+        cls.set_values_from_parameters(base_body, required_default_parameters)
+
+        if parameters is not None:
+            cls.set_values_from_parameters(base_body, parameters)
+
+        return base_body
+
+    @classmethod
+    def set_values_from_parameters(cls, base_body, parameters):
+        for key in parameters.keys():
+            cls._set_value_for_key(base_body, parameters, key)
+
+    @staticmethod
+    def _set_value_for_key(dictionary, parameters, flattened_key):
+        value = parameters.get(flattened_key)
+
+        def create_nested_entry(keys):
+            if len(keys) == 1:
+                return value
+            return {keys[1]: create_nested_entry(keys[1:])}
+
+        def set_value(sub_dictionary, keys):
+            if sub_dictionary.get(keys[0]) is None:
+                sub_dictionary[keys[0]] = create_nested_entry(keys)
+            else:
+                if len(keys) == 1:
+                    sub_dictionary[keys[0]] = value
+                else:
+                    set_value(sub_dictionary[keys[0]], keys[1:])
+
+        listed_keys = flattened_key.split(".")
+        set_value(dictionary, listed_keys)
 
     @staticmethod
     def _get_deployment_data(deployment_id, session):

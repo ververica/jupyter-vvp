@@ -110,3 +110,31 @@ class DeploymentTests(unittest.TestCase):
             Deployments().make_deployment(cell, self.session)
 
         assert raised_exception.exception.__str__() == NO_DEFAULT_DEPLOYMENT_MESSAGE
+
+    def test_set_values_from_parameters(self, requests_mock):
+        dictionary = {
+            "initialkey1": "initialvalue1",
+            "initialkey2": {
+                "initialsubkey1": "initialsubvalue1",
+                "initialsubkey2": "initialsubvalue2"
+            }
+        }
+        parameters = {
+            "key1.subkey1": "value1",
+            "key1.subkey2": "value2",
+            "initialkey1": "newvalue1",
+            "initialkey2.initialsubkey2": "newsubvalue2"
+        }
+        expected_dictionary = {
+            "key1": {
+                "subkey1": "value1",
+                "subkey2": "value2"
+            },
+            "initialkey1": "newvalue1",
+            "initialkey2": {
+                "initialsubkey1": "initialsubvalue1",
+                "initialsubkey2": "newsubvalue2"
+            }}
+
+        Deployments.set_values_from_parameters(dictionary, parameters)
+        self.assertEqual(dictionary, expected_dictionary)
