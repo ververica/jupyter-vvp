@@ -34,6 +34,11 @@ The request URL used is shown.
 This will connect and create a session with the name mysession.
 If no session exists then this will be the default.
 
+## Setting deployment parameters
+Deployments of SQL INSERT jobs can be customised by setting parameters.
+The possible settings are listed in a parameters dictionary in the example notebook.
+To use these parameters, the switch `-p [parameters-variable-name]` is used in the `flink_sql` Magic.
+If no switch is specified, the default variable `vvp_default_parameters` is used.
 
 ## SQL requests
 ```
