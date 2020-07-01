@@ -39,6 +39,14 @@ def all_deployment_states():
     return [state for states in deployment_states.values() for state in states]
 
 
+NON_PARSABLE_DEPLOYMENT_SETTINGS = [
+    "metadata.annotations",
+    "spec.template.metadata.annotations",
+    "spec.template.spec.flinkConfiguration",
+    "spec.template.spec.logging.log4jLoggers"
+]
+
+
 class Deployments:
 
     @classmethod
@@ -83,18 +91,23 @@ class Deployments:
         cls.set_values_from_flat_parameters(base_body, required_default_parameters)
 
         if override_parameters is not None:
-            cls.set_values_from_flat_parameters(base_body, override_parameters.get('deployment', {}))
-            if base_body.get("spec", {}).get("template", {}).get("spec", {}).get("flinkConfiguration", None):
-                raise VvpParameterException("Flink settings should not be specified in 'deployment',"
-                                            "but instead in 'flink'.")
-            cls.set_flink_parameters(base_body, override_parameters.get('flink', {}))
+            cls.set_values_from_flat_parameters(base_body, override_parameters)
+            cls.set_all_special_case_parameters(base_body, override_parameters)
 
         return base_body
+
+    @classmethod
+    def set_all_special_case_parameters(cls, base_body, override_parameters):
+        for special_case_prefix in NON_PARSABLE_DEPLOYMENT_SETTINGS:
+            cls._set_special_case_parameters(base_body, special_case_prefix, override_parameters)
 
     @classmethod
     def set_values_from_flat_parameters(cls, base_body, parameters):
         try:
             for key in parameters.keys():
+                for special_case in NON_PARSABLE_DEPLOYMENT_SETTINGS:
+                    if key.startswith(special_case):
+                        return
                 cls._set_value_from_flattened_key(base_body, parameters, key)
         except VvpParameterException as exception:
             raise exception
@@ -104,36 +117,39 @@ class Deployments:
                                         "({})".format(exception.__str__()))
 
     @classmethod
-    def set_flink_parameters(cls, base_body, parameters):
+    def _set_special_case_parameters(cls, base_body, prefix, parameters):
         for key in parameters.keys():
-            cls.set_value_in_dict(base_body, ["spec", "template", "spec", "flinkConfiguration", key], parameters[key])
+            if key.startswith(prefix):
+                keys_chain = prefix.split(".")
+                key_end = key[len(prefix + "."):]
+                keys_chain.append(key_end)
+                cls._set_value_in_dict_from_keys(base_body, keys_chain, parameters[key])
 
     @classmethod
     def _set_value_from_flattened_key(cls, dictionary, parameters, flattened_key):
         value = parameters.get(flattened_key)
-
-        listed_keys = flattened_key.split(".")
-        cls.set_value_in_dict(dictionary, listed_keys, value)
+        keys_chain = flattened_key.split(".")
+        cls._set_value_in_dict_from_keys(dictionary, keys_chain, value)
 
     @classmethod
-    def set_value_in_dict(cls, sub_dictionary, keys, value):
+    def _set_value_in_dict_from_keys(cls, sub_dictionary, keys, value):
         try:
             if sub_dictionary.get(keys[0]) is None:
-                sub_dictionary[keys[0]] = cls.create_nested_entry(keys, value)
+                sub_dictionary[keys[0]] = cls._create_nested_entry(keys, value)
             else:
                 if len(keys) == 1:
                     sub_dictionary[keys[0]] = value
                 else:
-                    cls.set_value_in_dict(sub_dictionary[keys[0]], keys[1:], value)
+                    cls._set_value_in_dict_from_keys(sub_dictionary[keys[0]], keys[1:], value)
         except AttributeError as exception:
             raise VvpParameterException("Bad parameters {}, {}".format(keys, value) +
                                         ": you may be trying to set a subkey value on an already set scalar. ")
 
     @classmethod
-    def create_nested_entry(cls, keys, value):
+    def _create_nested_entry(cls, keys, value):
         if len(keys) == 1:
             return value
-        return {keys[1]: cls.create_nested_entry(keys[1:], value)}
+        return {keys[1]: cls._create_nested_entry(keys[1:], value)}
 
     @staticmethod
     def _get_deployment_data(deployment_id, session):
