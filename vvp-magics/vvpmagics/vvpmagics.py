@@ -12,6 +12,7 @@ print('Loading vvp-vvpmagics.')
 
 VVP_DEFAULT_PARAMETERS_VARIABLE = "vvp_deployment_parameters"
 
+
 @magics_class
 class VvpMagics(Magics):
 
@@ -24,9 +25,11 @@ class VvpMagics(Magics):
     @argument('hostname', type=str, help='Hostname')
     @argument('-p', '--port', type=str, default="8080", help='Port')
     @argument('-n', '--namespace', type=str, help='Namespace. If empty, lists all namespaces.')
+    @argument('-k', '--key', type=str, help='API Key.')
     @argument('-s', '--session', type=str, help='Session name')
     @argument('-f', '--force', type=bool, help='Force updating of session names.')
-    @argument('-d', '--debug', type=bool, default=False, nargs="?", const=True, help='Print traceback for all exceptions for debugging.')
+    @argument('-d', '--debug', type=bool, default=False, nargs="?", const=True,
+              help='Print traceback for all exceptions for debugging.')
     def connect_vvp(self, line):
         args = parse_argstring(self.connect_vvp, line)
         hostname = args.hostname
@@ -39,7 +42,9 @@ class VvpMagics(Magics):
                 if session_name is None:
                     self.print_error("No session name given and none already exist.")
                 else:
-                    return VvpSession.create_session(vvp_base_url, args.namespace, session_name, force=force_update)
+                    api_key = args.key or None
+                    return VvpSession.create_session(vvp_base_url, args.namespace, session_name,
+                                                     force=force_update, api_key=api_key)
             else:
                 return VvpSession.get_namespaces(vvp_base_url)
         except Exception as exception:
@@ -55,7 +60,8 @@ class VvpMagics(Magics):
                                                'Nothing will be assigned if query does not result in data frame')
     @argument('-p', '--parameters', type=str, help='Name of variable to read deployment parameter settings from.'
                                                    'By default this is "{}".'.format(VVP_DEFAULT_PARAMETERS_VARIABLE))
-    @argument('-d', '--debug', type=bool, default=False, nargs="?", const=True, help='Print traceback for all exceptions for debugging.')
+    @argument('-d', '--debug', type=bool, default=False, nargs="?", const=True,
+              help='Print traceback for all exceptions for debugging.')
     def flink_sql(self, line, cell):
         args = parse_argstring(self.flink_sql, line)
 

@@ -9,15 +9,15 @@ class VvpSession:
     _sessions = {}
     default_session_name = None
 
-    def __init__(self, vvp_base_url: str, namespace: str):
+    def __init__(self, vvp_base_url: str, namespace: str, api_key: str = None):
         """
 
-        :type http_session: HttpSession
         :type namespace: string
         :type vvp_base_url: string
+        :type api_key: string
         """
 
-        self._http_session = HttpSession(vvp_base_url, None)
+        self._http_session = HttpSession(vvp_base_url, api_key)
 
         if not self._is_valid_namespace(namespace):
             raise SessionException("Invalid or empty namespace specified.")
@@ -35,8 +35,8 @@ class VvpSession:
             raise SessionException("The session name {} is invalid.".format(session_name))
 
     @classmethod
-    def create_session(cls, vvp_base_url, namespace, session_name, set_default=False, force=False):
-        session = cls(vvp_base_url, namespace)
+    def create_session(cls, vvp_base_url, namespace, session_name, set_default=False, force=False, api_key=None):
+        session = cls(vvp_base_url, namespace, api_key)
         cls._add_session_to_dict(session_name, session, force=force)
         if (cls.default_session_name is None) or set_default:
             cls.default_session_name = session_name
