@@ -47,24 +47,25 @@ Users may find the following documentation generally useful:
 - [Lifecycle Management settings](https://docs.ververica.com/user_guide/lifecycle_management/index.html)
 
 Some relevant examples include:
-- `metadata.name`: The name of the deployment.
-  This can be any string.
-  If not specified, then this will be the contents of the cell.
-- `metadata.annotations.license/testing`: can be `True` or `False`.
-   The `flink_sql` magic will set this to `False` if not specified.
-- `spec.template.spec.parallelism`: integer value. 
-   See [here](https://docs.ververica.com/user_guide/deployments/deployment_templates.html#parallelism-number-of-taskmanagers-and-slots).
--  `spec.restoreStrategy`: Can be `"LATEST_STATE"`, `"LATEST_SAVEPOINT"`, or `"NONE"`.
-   See [here](https://docs.ververica.com/user_guide/lifecycle_management/index.html#restore-strategy)
--  `spec.upgradeStrategy`: Can be `"STATELESS"`, `"STATEFUL"`, or `"NONE"`.
-   See [here](https://docs.ververica.com/user_guide/lifecycle_management/index.html#upgrade-strategy)
--  `spec.template.spec.flinkConfiguration.<FlinkConfigurationKey>`: 
-   The user can specify Flink configuration parameters in place of `<FlinkConfigurationKey>`.
-   For example, `spec.template.spec.flinkConfiguration.state.savepoints.dir: "s3://flink/savepoints"`.
-   See [here](https://docs.ververica.com/user_guide/deployments/configure_flink.html).
-   Note that the placeholders (e.g., `{{Namespace}}`) appearing in `flinkConfiguration` settings
-   are not processed by `%%flink_sql` so can be used as normal:
-   see [here](https://docs.ververica.com/administration/deployment_defaults.html#placeholders-in-flink-configuration).
+
+| Setting                               | Possible values                                               | Comment         | Documentation      |
+|---------------------------------------|---------------------------------------------------------------|-----------------|--------------------|
+|`metadata.name`                        | Arbitrary string                                              | If not specified, then this will be the cell contents. | |
+|`metadata.annotations.license/testing` | Boolean: `True` or `False`                                    | The `flink_sql` magic will set this to `False` if not specified. | |
+|`spec.template.spec.parallelism`       | Integer                                                       | | [Link](https://docs.ververica.com/user_guide/deployments/deployment_templates.html#parallelism-number-of-taskmanagers-and-slots) |
+|`spec.restoreStrategy`                 | String: `"LATEST_STATE"`, `"LATEST_SAVEPOINT"`, or `"NONE"`.  | | [Link](https://docs.ververica.com/user_guide/lifecycle_management/index.html#restore-strategy) |
+|`spec.upgradeStrategy`                 | String: `"STATELESS"`, `"STATEFUL"`, or `"NONE"`.             | | [Link](https://docs.ververica.com/user_guide/lifecycle_management/index.html#upgrade-strategy) |
+
+### Flink settings
+In the deployment settings,
+keys of the form `spec.template.spec.flinkConfiguration.<FlinkConfigurationKey>` can be used.
+The user can specify Flink configuration parameters in place of `<FlinkConfigurationKey>`.
+For example, `spec.template.spec.flinkConfiguration.state.savepoints.dir: "s3://flink/savepoints"`.
+See [here](https://docs.ververica.com/user_guide/deployments/configure_flink.html).
+
+Note that the placeholders (e.g., `{{Namespace}}`) appearing in `flinkConfiguration` settings
+are left untouched by `%%flink_sql`, so can be used as normal:
+see [here](https://docs.ververica.com/administration/deployment_defaults.html#placeholders-in-flink-configuration).
 
 ## SQL requests
 ```
