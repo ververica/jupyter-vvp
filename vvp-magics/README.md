@@ -36,9 +36,35 @@ If no session exists then this will be the default.
 
 ## Setting deployment parameters
 Deployments of SQL INSERT jobs can be customised by setting parameters.
-The possible settings are listed in a parameters dictionary in the example notebook.
+The possible settings keys are listed in a parameters dictionary in the example notebook,
+and its use is shown there.
 To use these parameters, the switch `-p [parameters-variable-name]` is used in the `flink_sql` Magic.
 If no switch is specified, the default variable `vvp_default_parameters` is used.
+
+### Possible deployment setting values
+Users may find the following documentation generally useful:
+- [Deployment Template settings](https://docs.ververica.com/user_guide/deployments/deployment_templates.html)
+- [Lifecycle Management settings](https://docs.ververica.com/user_guide/lifecycle_management/index.html)
+
+Some relevant examples include:
+- `metadata.name`: The name of the deployment.
+  This can be any string.
+  If not specified, then this will be the contents of the cell.
+- `metadata.annotations.license/testing`: can be `True` or `False`.
+   The `flink_sql` magic will set this to `False` if not specified.
+- `spec.template.spec.parallelism`: integer value. 
+   See [here](https://docs.ververica.com/user_guide/deployments/deployment_templates.html#parallelism-number-of-taskmanagers-and-slots).
+-  `spec.restoreStrategy`: Can be `"LATEST_STATE"`, `"LATEST_SAVEPOINT"`, or `"NONE"`.
+   See [here](https://docs.ververica.com/user_guide/lifecycle_management/index.html#restore-strategy)
+-  `spec.upgradeStrategy`: Can be `"STATELESS"`, `"STATEFUL"`, or `"NONE"`.
+   See [here](https://docs.ververica.com/user_guide/lifecycle_management/index.html#upgrade-strategy)
+-  `spec.template.spec.flinkConfiguration.<FlinkConfigurationKey>`: 
+   The user can specify Flink configuration parameters in place of `<FlinkConfigurationKey>`.
+   For example, `spec.template.spec.flinkConfiguration.state.savepoints.dir: "s3://flink/savepoints"`.
+   See [here](https://docs.ververica.com/user_guide/deployments/configure_flink.html).
+   Note that the placeholders (e.g., `{{Namespace}}`) appearing in `flinkConfiguration` settings
+   are not processed by `%%flink_sql` so can be used as normal:
+   see [here](https://docs.ververica.com/administration/deployment_defaults.html#placeholders-in-flink-configuration).
 
 ## SQL requests
 ```
