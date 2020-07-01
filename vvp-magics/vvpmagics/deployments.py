@@ -6,10 +6,6 @@ from ipywidgets import widgets
 NO_DEFAULT_DEPLOYMENT_MESSAGE = "No default deployment target found."
 VVP_DEFAULT_PARAMETERS_VARIABLE = "vvp_default_parameters"
 
-required_default_parameters = {
-    "metadata.annotations.license/testing": False
-}
-
 
 def deployment_defaults_endpoint(namespace):
     return "/api/v1/namespaces/{}/deployment-defaults".format(namespace)
@@ -38,6 +34,10 @@ deployment_states = {
 def all_deployment_states():
     return [state for states in deployment_states.values() for state in states]
 
+
+REQUIRED_DEFAULT_PARAMETERS = {
+    "metadata.annotations.license/testing": False
+}
 
 NON_PARSABLE_DEPLOYMENT_SETTINGS = [
     "metadata.annotations",
@@ -88,18 +88,13 @@ class Deployments:
         }
         base_body['metadata']['name'] = cell
         base_body['spec']['deploymentTargetId'] = cls._get_deployment_target(session)
-        cls.set_values_from_flat_parameters(base_body, required_default_parameters)
+        cls.set_values_from_flat_parameters(base_body, REQUIRED_DEFAULT_PARAMETERS)
 
         if override_parameters is not None:
             cls.set_values_from_flat_parameters(base_body, override_parameters)
             cls.set_all_special_case_parameters(base_body, override_parameters)
 
         return base_body
-
-    @classmethod
-    def set_all_special_case_parameters(cls, base_body, override_parameters):
-        for special_case_prefix in NON_PARSABLE_DEPLOYMENT_SETTINGS:
-            cls._set_special_case_parameters(base_body, special_case_prefix, override_parameters)
 
     @classmethod
     def set_values_from_flat_parameters(cls, base_body, parameters):
@@ -117,6 +112,11 @@ class Deployments:
                                         "({})".format(exception.__str__()))
 
     @classmethod
+    def set_all_special_case_parameters(cls, base_body, override_parameters):
+        for special_case_prefix in NON_PARSABLE_DEPLOYMENT_SETTINGS:
+            cls._set_special_case_parameters(base_body, special_case_prefix, override_parameters)
+
+    @classmethod
     def _set_special_case_parameters(cls, base_body, prefix, parameters):
         for key in parameters.keys():
             if key.startswith(prefix):
@@ -128,22 +128,22 @@ class Deployments:
     @classmethod
     def _set_value_from_flattened_key(cls, dictionary, parameters, flattened_key):
         value = parameters.get(flattened_key)
-        keys_chain = flattened_key.split(".")
-        cls._set_value_in_dict_from_keys(dictionary, keys_chain, value)
+        keys = flattened_key.split(".")
+        cls._set_value_in_dict_from_keys(dictionary, keys, value)
 
     @classmethod
-    def _set_value_in_dict_from_keys(cls, sub_dictionary, keys, value):
+    def _set_value_in_dict_from_keys(cls, dictionary, keys, value):
         try:
-            if sub_dictionary.get(keys[0]) is None:
-                sub_dictionary[keys[0]] = cls._create_nested_entry(keys, value)
+            if dictionary.get(keys[0]) is None:
+                dictionary[keys[0]] = cls._create_nested_entry(keys, value)
             else:
                 if len(keys) == 1:
-                    sub_dictionary[keys[0]] = value
+                    dictionary[keys[0]] = value
                 else:
-                    cls._set_value_in_dict_from_keys(sub_dictionary[keys[0]], keys[1:], value)
+                    cls._set_value_in_dict_from_keys(dictionary[keys[0]], keys[1:], value)
         except AttributeError as exception:
             raise VvpParameterException("Bad parameters {}, {}".format(keys, value) +
-                                        ": you may be trying to set a subkey value on an already set scalar. ")
+                                        ": you may be trying to set a sub-key value on an already set scalar. ")
 
     @classmethod
     def _create_nested_entry(cls, keys, value):
