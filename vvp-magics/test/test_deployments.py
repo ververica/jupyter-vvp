@@ -2,7 +2,9 @@ import unittest
 
 import requests_mock
 
-from vvpmagics.deployments import NO_DEFAULT_DEPLOYMENT_MESSAGE, VvpConfigurationException, Deployments
+from test.testmocks import ShellMock, ArgsMock
+from vvpmagics.deployments import NO_DEFAULT_DEPLOYMENT_MESSAGE, VvpConfigurationException, Deployments, \
+    VvpParameterException, VVP_DEFAULT_PARAMETERS_VARIABLE
 from vvpmagics.vvpsession import VvpSession
 
 
@@ -88,7 +90,7 @@ class DeploymentTests(unittest.TestCase):
 
         cell = """SOME VALID DML QUERY"""
 
-        response = Deployments().make_deployment(cell, self.session)
+        response = Deployments().make_deployment(cell, self.session, ShellMock({}), ArgsMock(None))
         assert response == deployment_id
 
     def test_make_deployment_throws_if_no_default_deployment(self, requests_mock):
@@ -107,6 +109,111 @@ class DeploymentTests(unittest.TestCase):
         cell = """SOME VALID DML QUERY"""
 
         with self.assertRaises(VvpConfigurationException) as raised_exception:
-            Deployments().make_deployment(cell, self.session)
+            Deployments().make_deployment(cell, self.session, ShellMock({}), ArgsMock(None))
 
         assert raised_exception.exception.__str__() == NO_DEFAULT_DEPLOYMENT_MESSAGE
+
+    def test_set_values_from_flat_parameters(self, requests_mock):
+        dictionary = {
+            "initialkey1": "initialvalue1",
+            "initialkey2": {
+                "initialsubkey1": "initialsubvalue1",
+                "initialsubkey2": "initialsubvalue2"
+            }
+        }
+        parameters = {
+            "key1.subkey1": "value1",
+            "key1.subkey2": "value2",
+            "initialkey1": "newvalue1",
+            "initialkey2.initialsubkey2": "newsubvalue2"
+        }
+        expected_dictionary = {
+            "key1": {
+                "subkey1": "value1",
+                "subkey2": "value2"
+            },
+            "initialkey1": "newvalue1",
+            "initialkey2": {
+                "initialsubkey1": "initialsubvalue1",
+                "initialsubkey2": "newsubvalue2"
+            }}
+
+        Deployments.set_values_from_flat_parameters(dictionary, parameters)
+        self.assertEqual(dictionary, expected_dictionary)
+
+    def test_get_deployment_parameters_returns_default_if_none_given(self, requests_mock):
+        args = ArgsMock(None)
+        shell = ShellMock({VVP_DEFAULT_PARAMETERS_VARIABLE: {
+            "key": "value"
+        }})
+
+        parameters = Deployments.get_deployment_parameters(shell, args)
+        assert parameters == {"key": "value"}
+
+    def test_get_deployment_parameters_returns_correct_even_if_default_set(self, requests_mock):
+        args = ArgsMock(parameters="myparams")
+        shell = ShellMock({
+            VVP_DEFAULT_PARAMETERS_VARIABLE: {
+                "key": "value"
+            },
+            "myparams": {
+                "mykey": "myvalue"
+            }
+        })
+
+        parameters = Deployments.get_deployment_parameters(shell, args)
+        assert parameters == {"mykey": "myvalue"}
+
+    def test_set_values_from_flat_parameters_throws_if_flattened_parameters_bad(self, requests_mock):
+        dictionary = {}
+        parameters = {
+            "key": "value",
+            "key.subkey": "subvalue"
+        }
+
+        with self.assertRaises(VvpParameterException) as exception:
+            Deployments.set_values_from_flat_parameters(dictionary, parameters)
+
+    def test_set_flink_parameters_sets_correct_parameters(self, requests_mock):
+        dictionary = {"key": "value",
+                      "spec": {
+                          "dummykey": "dummyvalue"
+                      }}
+        flink_parameters = {
+            "flink.setting": "settingvalue"
+        }
+        expected_dictionary = {
+            "key": "value",
+            "spec": {
+                "dummykey": "dummyvalue",
+                "template": {
+                    "spec": {
+                        "flinkConfiguration": {
+                            "flink.setting": "settingvalue"
+                        }
+                    }
+                }
+            }
+        }
+        Deployments.set_flink_parameters(dictionary, flink_parameters)
+        assert dictionary == expected_dictionary
+
+    def test_build_deployment_request_throws_if_flink_params_set_early(self, requests_mock):
+        self._setUpSession(requests_mock)
+
+        requests_mock.request(method='get',
+                              url='http://localhost:8080{}'.format(deployment_defaults_endpoint(self.namespace)),
+                              text=""" { "kind": "DeploymentDefaults",
+                                "spec": { "deploymentTargetId": "0b7e8f13-6943-404e-9809-c14db57d195e" } } """,
+                              status_code=200
+                              )
+
+        parameters = {
+            "deployment": {
+                "spec.template.spec.flinkConfiguration": "anything"
+            }
+        }
+        dummy_cell = "some cell content"
+
+        with self.assertRaises(VvpParameterException):
+            Deployments._build_deployment_request(dummy_cell, self.session, parameters)

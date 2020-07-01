@@ -38,7 +38,7 @@ def is_supported_in(responses, response):
     return response['validationResult'] in responses
 
 
-def run_query(session, cell):
+def run_query(session, cell, shell, args):
     validation_response = _validate_sql(cell, session)
     if validation_response.status_code != 200:
         raise FlinkSqlRequestException("Bad HTTP request, return code {}".format(validation_response.status_code),
@@ -52,7 +52,7 @@ def run_query(session, cell):
         json_data = json.loads(execute_command_response.text)
         return json_convert_to_dataframe(json_data)
     if is_supported_in(dml_responses, json_response):
-        return Deployments.make_deployment(cell, session)
+        return Deployments.make_deployment(cell, session, shell, args)
 
     else:
         error_message = json_response['errorDetails']['message']

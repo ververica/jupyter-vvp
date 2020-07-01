@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import requests_mock
 
-from vvpmagics import flinksql
+from test.testmocks import ArgsMock, ShellMock
 from vvpmagics.deployments import Deployments
 from vvpmagics.flinksql import run_query, SqlSyntaxException, FlinkSqlRequestException
 from vvpmagics.vvpsession import VvpSession
@@ -63,7 +63,7 @@ class FlinkSqlTests(unittest.TestCase):
 
         cell = """FAKE SQL COMMAND"""
 
-        response = run_query(self.session, cell)
+        response = run_query(self.session, cell, None, None)
         assert response.iloc[0]['table name'] == 'testTable'
 
     def test_flink_sql_executes_valid_ddl_statement(self, requests_mock):
@@ -80,11 +80,16 @@ class FlinkSqlTests(unittest.TestCase):
 
         cell = """FAKE SQL COMMAND"""
 
-        response = run_query(self.session, cell)
+        response = run_query(self.session, cell, None, None)
         assert response.iloc[0]['table name'] == 'testTable'
 
     def test_flink_sql_executes_valid_dml_statement(self, requests_mock, ):
         self._setUpSession(requests_mock)
+
+        args = ArgsMock(None)
+        shell = ShellMock({"vvp_default_parameters": {
+            "key": "value"
+        }})
         deployment_id = """58ea758d-02e2-4b8e-8d60-3c36c3413bf3"""
 
         requests_mock.request(method='post',
@@ -94,9 +99,29 @@ class FlinkSqlTests(unittest.TestCase):
         cell = """SOME VALID DML QUERY"""
 
         with patch.object(Deployments, 'make_deployment', return_value=deployment_id) as mock_make_deployment:
-            response = run_query(self.session, cell)
+            response = run_query(self.session, cell, shell, args)
         assert response == deployment_id
-        mock_make_deployment.assert_called_once()
+        mock_make_deployment.assert_called_once_with(cell, self.session, shell, args)
+
+    def test_flink_sql_executes_valid_dml_statement_with_specified_parameters(self, requests_mock):
+        self._setUpSession(requests_mock)
+
+        args = ArgsMock("myparamsvar")
+        shell = ShellMock({"myparamsvar": {
+            "key": "value"
+        }})
+        deployment_id = """58ea758d-02e2-4b8e-8d60-3c36c3413bf3"""
+
+        requests_mock.request(method='post',
+                              url='http://localhost:8080{}'.format(sql_validate_endpoint(self.namespace)),
+                              text=""" { "validationResult": "VALIDATION_RESULT_VALID_INSERT_QUERY" } """)
+
+        cell = """SOME VALID DML QUERY"""
+
+        with patch.object(Deployments, 'make_deployment', return_value=deployment_id) as mock_make_deployment:
+            response = run_query(self.session, cell, shell, args)
+        assert response == deployment_id
+        mock_make_deployment.assert_called_once_with(cell, self.session, shell, args)
 
     def test_flink_sql_throws_if_statement_bad(self, requests_mock):
         self._setUpSession(requests_mock)
@@ -110,7 +135,7 @@ class FlinkSqlTests(unittest.TestCase):
         cell = """BAD SQL COMMAND"""
 
         with self.assertRaises(SqlSyntaxException) as raised:
-            run_query(self.session, cell)
+            run_query(self.session, cell, None, None)
             assert raised.exception.sql == cell
 
     def test_flink_sql_throws_if_response_unsupported(self, requests_mock):
@@ -122,7 +147,7 @@ class FlinkSqlTests(unittest.TestCase):
         cell = """SOME SQL COMMAND"""
 
         with self.assertRaises(FlinkSqlRequestException) as raised_exception:
-            run_query(self.session, cell)
+            run_query(self.session, cell, None, None)
 
         assert raised_exception.exception.sql == cell
 
@@ -137,7 +162,7 @@ class FlinkSqlTests(unittest.TestCase):
         cell = """SOME SQL COMMAND"""
 
         with self.assertRaises(FlinkSqlRequestException) as raised_exception:
-            run_query(self.session, cell)
+            run_query(self.session, cell, None, None)
             assert raised_exception.exception.sql == cell
 
 

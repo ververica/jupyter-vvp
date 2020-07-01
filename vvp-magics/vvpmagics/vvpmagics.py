@@ -3,13 +3,14 @@ from IPython.core.magic_arguments import magic_arguments, argument, parse_argstr
 from IPython import get_ipython
 import sys
 
-from vvpmagics.flinksql import run_query, SqlSyntaxException
+from vvpmagics.flinksql import run_query
 from vvpmagics.vvpsession import VvpSession
 
 from pandas import DataFrame
 
 print('Loading vvp-vvpmagics.')
 
+VVP_DEFAULT_PARAMETERS_VARIABLE = "vvp_deployment_parameters"
 
 @magics_class
 class VvpMagics(Magics):
@@ -52,6 +53,8 @@ class VvpMagics(Magics):
                                                 'to a given vvp namespace.')
     @argument('-o', '--output', type=str, help='Name of variable to assign the resulting data frame to. '
                                                'Nothing will be assigned if query does not result in data frame')
+    @argument('-p', '--parameters', type=str, help='Name of variable to read deployment parameter settings from.'
+                                                   'By default this is "{}".'.format(VVP_DEFAULT_PARAMETERS_VARIABLE))
     @argument('-d', '--debug', type=bool, default=False, nargs="?", const=True, help='Print traceback for all exceptions for debugging.')
     def flink_sql(self, line, cell):
         args = parse_argstring(self.flink_sql, line)
@@ -59,7 +62,7 @@ class VvpMagics(Magics):
         if cell:
             try:
                 session = VvpSession.get_session(args.session)
-                result = run_query(session, cell)
+                result = run_query(session, cell, self._ipython_shell, args)
                 if (args.output is not None) and (isinstance(result, DataFrame)):
                     self.shell.user_ns[args.output] = result
                 return result
