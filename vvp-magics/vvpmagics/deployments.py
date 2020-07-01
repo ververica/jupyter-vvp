@@ -133,23 +133,16 @@ class Deployments:
 
     @classmethod
     def _set_value_in_dict_from_keys(cls, dictionary, keys, value):
-        try:
-            if dictionary.get(keys[0]) is None:
-                dictionary[keys[0]] = cls._create_nested_entry(keys, value)
-            else:
-                if len(keys) == 1:
-                    dictionary[keys[0]] = value
-                else:
-                    cls._set_value_in_dict_from_keys(dictionary[keys[0]], keys[1:], value)
-        except AttributeError as exception:
-            raise VvpParameterException("Bad parameters {}, {}".format(keys, value) +
-                                        ": you may be trying to set a sub-key value on an already set scalar. ")
-
-    @classmethod
-    def _create_nested_entry(cls, keys, value):
         if len(keys) == 1:
-            return value
-        return {keys[1]: cls._create_nested_entry(keys[1:], value)}
+            dictionary[keys[0]] = value
+        else:
+            try:
+                if not dictionary.get(keys[0]):
+                    dictionary[keys[0]] = {}
+                cls._set_value_in_dict_from_keys(dictionary[keys[0]], keys[1:], value)
+            except AttributeError as exception:
+                raise VvpParameterException("Bad parameters {}, {}".format(keys, value) +
+                                            ": you may be trying to set a sub-key value on an already set scalar. ")
 
     @staticmethod
     def _get_deployment_data(deployment_id, session):
