@@ -141,7 +141,7 @@ class Deployments:
                     dictionary[keys[0]] = {}
                 cls._set_value_in_dict_from_keys(dictionary[keys[0]], keys[1:], value)
             except AttributeError as exception:
-                raise VvpParameterException("Bad parameters {}, {}".format(keys, value) +
+                raise VvpParameterException("Bad parameters {} , {} ".format(keys, value) +
                                             ": you may be trying to set a sub-key value on an already set scalar. ")
 
     @staticmethod
