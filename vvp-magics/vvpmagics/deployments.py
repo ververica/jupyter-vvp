@@ -4,7 +4,7 @@ from IPython.core.display import display, HTML, clear_output
 from ipywidgets import widgets
 
 NO_DEFAULT_DEPLOYMENT_MESSAGE = "No default deployment target found."
-DEFAULT_VVP_PARAMETERS_VARIABLE = "vvp_default_parameters"
+VVP_DEFAULT_PARAMETERS_VARIABLE = "vvp_default_parameters"
 
 required_default_parameters = {
     "metadata.annotations.license/testing": False
@@ -145,7 +145,7 @@ class Deployments:
         if shell is None:
             return None
 
-        parameters_variable = DEFAULT_VVP_PARAMETERS_VARIABLE
+        parameters_variable = VVP_DEFAULT_PARAMETERS_VARIABLE
         if args.parameters is not None:
             parameters_variable = args.parameters
         return shell.user_ns.get(parameters_variable, None)

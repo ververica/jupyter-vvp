@@ -4,7 +4,7 @@ import requests_mock
 
 from test.testmocks import ShellMock, ArgsMock
 from vvpmagics.deployments import NO_DEFAULT_DEPLOYMENT_MESSAGE, VvpConfigurationException, Deployments, \
-    VvpParameterException, DEFAULT_VVP_PARAMETERS_VARIABLE
+    VvpParameterException, VVP_DEFAULT_PARAMETERS_VARIABLE
 from vvpmagics.vvpsession import VvpSession
 
 
@@ -143,7 +143,7 @@ class DeploymentTests(unittest.TestCase):
 
     def test_get_deployment_parameters_returns_default_if_none_given(self, requests_mock):
         args = ArgsMock(None)
-        shell = ShellMock({DEFAULT_VVP_PARAMETERS_VARIABLE: {
+        shell = ShellMock({VVP_DEFAULT_PARAMETERS_VARIABLE: {
             "key": "value"
         }})
 
@@ -153,7 +153,7 @@ class DeploymentTests(unittest.TestCase):
     def test_get_deployment_parameters_returns_correct_even_if_default_set(self, requests_mock):
         args = ArgsMock(parameters="myparams")
         shell = ShellMock({
-            DEFAULT_VVP_PARAMETERS_VARIABLE: {
+            VVP_DEFAULT_PARAMETERS_VARIABLE: {
                 "key": "value"
             },
             "myparams": {
