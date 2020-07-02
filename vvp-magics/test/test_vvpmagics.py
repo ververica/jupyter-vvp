@@ -99,7 +99,6 @@ class VvpMagicsTests(unittest.TestCase):
         magic_line_without_session = "localhost -K"
         magics = VvpMagics()
 
-        # with patch.object(getpass, 'getpass', return_value=key) as mock_getpass:
         VvpMagics.get_api_key_interactively = MagicMock(return_value=key)
         session = magics.connect_vvp(magic_line_with_session)
         assert session._http_session._auth.api_key == key
