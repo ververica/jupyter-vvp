@@ -14,7 +14,7 @@ The package can be installed with `pip3 install ./dist/vvpmagics-x.y.z.tar.gz`.
 
 ## Docker setup
 
-First build the vvpmagics.zip. Then create the Docker image:
+First build the vvpmagics sdist package as above. Then create the Docker image:
 ```
 docker build . --tag vvp-jupyter:latest
 ```
