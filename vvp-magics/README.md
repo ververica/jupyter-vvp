@@ -12,6 +12,23 @@ in the same folder as `setup.py`.
 
 The package can be installed with `pip3 install ./dist/vvpmagics-x.y.z.tar.gz`.
 
+## Docker setup
+
+First build the vvpmagics.zip. Then create the Docker image:
+```
+docker build . --tag vvp-jupyter:latest
+```
+Finally run docker compose to set vvp environment up:
+```
+docker-compose up vvp-gateway vvp-appmanager vvp-ui vvp-jupyter
+```
+
+To log into Jupyter, look into the docker compose output and find a line that looks like this:
+```
+http://127.0.0.1:8888/?token=814a4f1ef6a10328f25e67aeb9e5d67e381aff0b2fc7ad2b
+```
+
+In the notebook use vvp-gateway as hostname and 8080 as port. An example notebook can be found in the work folder.
 
 ## Sessions
 
@@ -64,8 +81,10 @@ For example, `spec.template.spec.flinkConfiguration.state.savepoints.dir: "s3://
 See [here](https://docs.ververica.com/user_guide/deployments/configure_flink.html).
 
 Note that the placeholders (e.g., `{{Namespace}}`) appearing in `flinkConfiguration` settings
-are left untouched by `%%flink_sql`, so can be used as normal:
-see [here](https://docs.ververica.com/administration/deployment_defaults.html#placeholders-in-flink-configuration).
+are left untouched by `%%flink_sql`, so can be used as normal;
+e.g.:
+```spec.template.spec.flinkConfiguration.state.savepoints.dir: s3://flink/savepoints/{{ namespace }}```
+See [here](https://docs.ververica.com/administration/deployment_defaults.html#placeholders-in-flink-configuration).
 
 ## SQL requests
 ```
@@ -102,23 +121,6 @@ See the example notebooks:
 - [Connect to VVP](./example_notebooks/ConnectToVVP.test.ipynb)
 - [DDL and DML commands and queries](./example_notebooks/FlinkSql.test.ipynb)
 
-## Docker setup
-
-First build the vvpmagics.zip. Then create the Docker image:
-```
-docker build . --tag vvp-jupyter:latest
-```
-Finally run docker compose to set vvp environment up:
-```
-docker-compose up vvp-gateway vvp-appmanager vvp-ui vvp-jupyter
-```
-
-To log into Jupyter, look into the docker compose output and find a line that looks like this:
-```
-http://127.0.0.1:8888/?token=814a4f1ef6a10328f25e67aeb9e5d67e381aff0b2fc7ad2b
-```
-
-In the notebook use vvp-gateway as hostname and 8080 as port. An example notebook can be found in the work folder.
 
 ## Help
 ```
