@@ -12,12 +12,23 @@ print('Loading vvp-vvpmagics.')
 
 VVP_DEFAULT_PARAMETERS_VARIABLE = "vvp_deployment_parameters"
 
+def connect_completers(self, event):
+    return ['--port', '--namespace', '--session', '--force', '--debug']
+
+
+def flink_sql_completers(self, event):
+    return ['--session', '--force', '--debug']
+
+
 @magics_class
 class VvpMagics(Magics):
 
     def __init__(self, shell=None):
         super(VvpMagics, self).__init__(shell)
         self._ipython_shell = get_ipython()
+        if self._ipython_shell is not None:
+            self._ipython_shell.set_hook('complete_command', connect_completers, str_key='%connect_vvp')
+            self._ipython_shell.set_hook('complete_command', flink_sql_completers, re_key='%%flink_sql')
 
     @line_magic
     @magic_arguments()
