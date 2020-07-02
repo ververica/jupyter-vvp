@@ -12,13 +12,10 @@ print('Loading vvp-vvpmagics.')
 
 
 def connect_completers(self, event):
-    print(event, file=open('log.log', 'a'))
     return ['--port', '--namespace', '--session', '--force', '--debug']
 
 
 def flink_sql_completers(self, event):
-    print(self, file=open('log.log', 'a'))
-    print(event, file=open('log.log', 'a'))
     return ['--session', '--force', '--debug']
 
 

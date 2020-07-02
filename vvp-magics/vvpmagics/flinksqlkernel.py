@@ -59,7 +59,6 @@ class FlinkSqlKernel(IPythonKernel):
 
     def do_complete(self, code, cursor_pos):
         if code.startswith('%%flink_sql'):
-            print(code, file=open('log.log', 'a'))
             completions = _do_flink_completion(code, cursor_pos)
             if completions is not None:
                 return completions
