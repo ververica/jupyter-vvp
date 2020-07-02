@@ -1,3 +1,5 @@
+from getpass import getpass
+
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic)
 from IPython.core.magic_arguments import magic_arguments, argument, parse_argstring
 from IPython import get_ipython
@@ -14,7 +16,7 @@ VVP_DEFAULT_PARAMETERS_VARIABLE = "vvp_deployment_parameters"
 
 
 def connect_completers(self, event):
-    return ['--port', '--namespace', '--session', '--force', '--debug', '--key']
+    return ['--port', '--namespace', '--session', '--force', '--debug', '--key', '--prompt_key']
 
 
 def flink_sql_completers(self, event):
@@ -36,9 +38,12 @@ class VvpMagics(Magics):
     @argument('hostname', type=str, help='Hostname')
     @argument('-p', '--port', type=str, default="8080", help='Port')
     @argument('-n', '--namespace', type=str, help='Namespace. If empty, lists all namespaces.')
-    @argument('-k', '--key', type=str, help='API Key.')
+    @argument('-k', '--key', type=str, help='API Key as cleartext string.')
+    @argument('-K', '--prompt_key', type=bool, default=False, nargs="?", const=True,
+              help='Prompt user for API Key. Overrides any other key given.')
     @argument('-s', '--session', type=str, help='Session name')
-    @argument('-f', '--force', type=bool, help='Force updating of session names.')
+    @argument('-f', '--force', type=bool, default=False, nargs="?", const=True,
+              help='Force updating of session names.')
     @argument('-d', '--debug', type=bool, default=False, nargs="?", const=True,
               help='Print traceback for all exceptions for debugging.')
     def connect_vvp(self, line):
@@ -48,6 +53,8 @@ class VvpMagics(Magics):
         vvp_base_url = "http://{}:{}".format(hostname, port)
         try:
             api_key = args.key
+            if args.prompt_key:
+                api_key = self.get_api_key_interactively()
             if args.namespace:
                 session_name = args.session or VvpSession.default_session_name
                 force_update = args.force or False
@@ -62,6 +69,10 @@ class VvpMagics(Magics):
             self.print_error(exception)
             if args.debug or False:
                 raise exception
+
+    @staticmethod
+    def get_api_key_interactively():
+        return getpass(prompt="API Key:")
 
     @cell_magic
     @magic_arguments()
