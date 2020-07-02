@@ -56,10 +56,11 @@ class HttpSessionTests(unittest.TestCase):
         def match_headers(request):
             return request.headers['Authorization'] == "Bearer {}".format(key)
 
+        accepted = "key accepted"
         requests_mocker.request(method='post', url='http://localhost:8080/{}'.format(
-            self.path), additional_matcher=match_headers, text=self.return_text)
+            self.path), additional_matcher=match_headers, text=accepted)
 
-        assert session.post(self.path, "hello world test")
+        assert session.post(self.path, "hello world test").text == accepted
 
     def test_headers_not_set_if_no_api_key(self, requests_mocker):
         session = HttpSession(self.base_url, None)
@@ -67,10 +68,11 @@ class HttpSessionTests(unittest.TestCase):
         def match_headers(request):
             return "Authorization" not in request.headers.keys()
 
+        accepted = "no key needed"
         requests_mocker.request(method='post', url='http://localhost:8080/{}'.format(
-            self.path), additional_matcher=match_headers, text=self.return_text)
+            self.path), additional_matcher=match_headers, text=accepted)
 
-        assert session.post(self.path, "hello world test")
+        assert session.post(self.path, "hello world test").text == accepted
 
 
 if __name__ == '__main__':
