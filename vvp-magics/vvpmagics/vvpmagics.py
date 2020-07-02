@@ -12,12 +12,15 @@ print('Loading vvp-vvpmagics.')
 
 
 def connect_completers(self, event):
-    print(event.text_until_cursor, file=open('log.log', 'a'))
+    print(event, file=open('log.log', 'a'))
     return ['--port', '--namespace', '--session', '--force', '--debug']
 
+
 def flink_sql_completers(self, event):
-    print(event.text_until_cursor, file=open('log.log', 'a'))
-    return ["TABLES"]
+    print(self, file=open('log.log', 'a'))
+    print(event, file=open('log.log', 'a'))
+    return ['--session', '--force', '--debug']
+
 
 @magics_class
 class VvpMagics(Magics):
@@ -25,7 +28,7 @@ class VvpMagics(Magics):
     def __init__(self, shell=None):
         super(VvpMagics, self).__init__(shell)
         self._ipython_shell = get_ipython()
-        self._ipython_shell.set_hook('complete_command', connect_completers, re_key='%connect_vvp')
+        self._ipython_shell.set_hook('complete_command', connect_completers, str_key='%connect_vvp')
         self._ipython_shell.set_hook('complete_command', flink_sql_completers, re_key='%%flink_sql')
 
     @line_magic

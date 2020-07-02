@@ -12,6 +12,10 @@ def sql_validate_endpoint(namespace):
     return "/sql/v1beta1/namespaces/{}/sqlscripts:validate".format(namespace)
 
 
+def sql_complete_endpoint(namespace):
+    return "/sql/v1beta1/namespaces/{}/sqlscripts:suggest".format(namespace)
+
+
 ddl_responses = [
     "VALIDATION_RESULT_VALID_DDL_STATEMENT",
     "VALIDATION_RESULT_VALID_COMMAND_STATEMENT"
@@ -72,6 +76,14 @@ def _execute_sql(cell, session):
     body = json.dumps({"statement": cell})
     execute_response = session.submit_post_request(execute_endpoint, body)
     return execute_response
+
+
+def complete_sql(text, cursor_pos, session):
+    complete_endpoint = sql_complete_endpoint(session.get_namespace())
+    body = json.dumps({"sqlScript": text, "position": cursor_pos})
+    # print("Request body: " + body, file=open('dbg.log', 'a')) # dbg
+    response = session.submit_post_request(complete_endpoint, body)
+    return response
 
 
 class SqlSyntaxException(Exception):
