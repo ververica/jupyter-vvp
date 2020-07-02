@@ -12,8 +12,9 @@ print('Loading vvp-vvpmagics.')
 
 VVP_DEFAULT_PARAMETERS_VARIABLE = "vvp_deployment_parameters"
 
+
 def connect_completers(self, event):
-    return ['--port', '--namespace', '--session', '--force', '--debug']
+    return ['--port', '--namespace', '--session', '--force', '--debug', '--key']
 
 
 def flink_sql_completers(self, event):
