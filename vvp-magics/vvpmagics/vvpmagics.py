@@ -25,8 +25,9 @@ class VvpMagics(Magics):
     def __init__(self, shell=None):
         super(VvpMagics, self).__init__(shell)
         self._ipython_shell = get_ipython()
-        self._ipython_shell.set_hook('complete_command', connect_completers, str_key='%connect_vvp')
-        self._ipython_shell.set_hook('complete_command', flink_sql_completers, re_key='%%flink_sql')
+        if self._ipython_shell is not None:
+            self._ipython_shell.set_hook('complete_command', connect_completers, str_key='%connect_vvp')
+            self._ipython_shell.set_hook('complete_command', flink_sql_completers, re_key='%%flink_sql')
 
     @line_magic
     @magic_arguments()
