@@ -7,9 +7,7 @@ class HttpSession:
     def __init__(self, base_url, headers, api_key=None):
         self._base_url = base_url
         self._headers = headers
-
         self._auth = ApiKeyAuth(api_key) if api_key else None
-
         self._session = requests.Session()
 
     def get_base_url(self):
@@ -24,9 +22,7 @@ class HttpSession:
     def _send_request(self, path, method, request_headers, data=None):
         url = self._base_url + path
         headers = {**(self._headers or {}), **(request_headers or {})}
-        response = self._session.request(method, url, auth=self._auth, headers=headers, data=data)
-
-        return response
+        return self._session.request(method, url, auth=self._auth, headers=headers, data=data)
 
 
 class ApiKeyAuth(auth.AuthBase):

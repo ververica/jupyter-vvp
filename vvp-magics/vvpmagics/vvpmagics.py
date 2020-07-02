@@ -36,17 +36,17 @@ class VvpMagics(Magics):
         port = args.port
         vvp_base_url = "http://{}:{}".format(hostname, port)
         try:
+            api_key = args.key
             if args.namespace:
                 session_name = args.session or VvpSession.default_session_name
                 force_update = args.force or False
                 if session_name is None:
                     self.print_error("No session name given and none already exist.")
                 else:
-                    api_key = args.key or None
                     return VvpSession.create_session(vvp_base_url, args.namespace, session_name,
                                                      force=force_update, api_key=api_key)
             else:
-                return VvpSession.get_namespaces(vvp_base_url)
+                return VvpSession.get_namespaces(vvp_base_url, api_key=api_key)
         except Exception as exception:
             self.print_error(exception)
             if args.debug or False:

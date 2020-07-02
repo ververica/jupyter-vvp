@@ -17,7 +17,7 @@ class VvpSession:
         :type api_key: string
         """
 
-        self._http_session = HttpSession(vvp_base_url, api_key)
+        self._http_session = HttpSession(vvp_base_url, None, api_key)
 
         if not self._is_valid_namespace(namespace):
             raise SessionException("Invalid or empty namespace specified.")
@@ -69,9 +69,9 @@ class VvpSession:
         return namespace
 
     @staticmethod
-    def get_namespaces(base_url):
+    def get_namespaces(base_url, api_key=None):
         print("Requesting from {}...".format(base_url + namespaces_endpoint))
-        request = HttpSession(base_url, None).get(namespaces_endpoint)
+        request = HttpSession(base_url, None, api_key=api_key).get(namespaces_endpoint)
         namespaces = json.loads(request.text)
         return namespaces
 
