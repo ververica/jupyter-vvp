@@ -36,3 +36,4 @@ class ApiKeyAuth(auth.AuthBase):
 
     def __call__(self, request):
         request.headers['Authorization'] = "Bearer " + self.api_key
+        return request
