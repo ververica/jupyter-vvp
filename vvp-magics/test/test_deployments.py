@@ -125,7 +125,8 @@ class DeploymentTests(unittest.TestCase):
             "key1.subkey1": "value1",
             "key1.subkey2": "value2",
             "initialkey1": "newvalue1",
-            "initialkey2.initialsubkey2": "newsubvalue2"
+            "initialkey2.initialsubkey2": "newsubvalue2",
+            "metadata.annotations.should.be.ignored": "shouldbeignored"
         }
         expected_dictionary = {
             "key1": {
@@ -171,22 +172,37 @@ class DeploymentTests(unittest.TestCase):
             "key.subkey": "subvalue"
         }
 
-        with self.assertRaises(VvpParameterException) as exception:
+        with self.assertRaises(VvpParameterException):
             Deployments.set_values_from_flat_parameters(dictionary, parameters)
 
-    def test_set_flink_parameters_sets_correct_parameters(self, requests_mock):
+    def test_set_special_case_parameters_sets_correct_parameters(self, requests_mock):
         dictionary = {"key": "value",
                       "spec": {
                           "dummykey": "dummyvalue"
                       }}
-        flink_parameters = {
-            "flink.setting": "settingvalue"
+        parameters = {
+            "metadata.annotations.setting1": "settingvalue1",
+            "metadata.annotations.setting2": "settingvalue2",
+            "spec.template.metadata.annotations.my.annotation": "myvalue",
+            "spec.template.spec.flinkConfiguration.flink.setting": "settingvalue",
+            "ignored.parameter": "ignoredvalue"
         }
         expected_dictionary = {
             "key": "value",
+            "metadata": {
+                "annotations": {
+                    "setting1": "settingvalue1",
+                    "setting2": "settingvalue2"
+                }
+            },
             "spec": {
                 "dummykey": "dummyvalue",
                 "template": {
+                    "metadata": {
+                        "annotations": {
+                            "my.annotation": "myvalue"
+                        }
+                    },
                     "spec": {
                         "flinkConfiguration": {
                             "flink.setting": "settingvalue"
@@ -195,25 +211,5 @@ class DeploymentTests(unittest.TestCase):
                 }
             }
         }
-        Deployments.set_flink_parameters(dictionary, flink_parameters)
+        Deployments.set_all_special_case_parameters(dictionary, parameters)
         assert dictionary == expected_dictionary
-
-    def test_build_deployment_request_throws_if_flink_params_set_early(self, requests_mock):
-        self._setUpSession(requests_mock)
-
-        requests_mock.request(method='get',
-                              url='http://localhost:8080{}'.format(deployment_defaults_endpoint(self.namespace)),
-                              text=""" { "kind": "DeploymentDefaults",
-                                "spec": { "deploymentTargetId": "0b7e8f13-6943-404e-9809-c14db57d195e" } } """,
-                              status_code=200
-                              )
-
-        parameters = {
-            "deployment": {
-                "spec.template.spec.flinkConfiguration": "anything"
-            }
-        }
-        dummy_cell = "some cell content"
-
-        with self.assertRaises(VvpParameterException):
-            Deployments._build_deployment_request(dummy_cell, self.session, parameters)
