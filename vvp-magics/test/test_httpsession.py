@@ -49,6 +49,31 @@ class HttpSessionTests(unittest.TestCase):
         assert result.status_code == 200
         assert result.text == self.return_text
 
+    def test_api_key_is_applied_if_present(self, requests_mocker):
+        key = "myApiKey"
+        session = HttpSession(self.base_url, None, api_key=key)
+
+        def match_headers(request):
+            return request.headers['Authorization'] == "Bearer {}".format(key)
+
+        accepted = "key accepted"
+        requests_mocker.request(method='post', url='http://localhost:8080/{}'.format(
+            self.path), additional_matcher=match_headers, text=accepted)
+
+        assert session.post(self.path, "hello world test").text == accepted
+
+    def test_headers_not_set_if_no_api_key(self, requests_mocker):
+        session = HttpSession(self.base_url, None)
+
+        def match_headers(request):
+            return "Authorization" not in request.headers.keys()
+
+        accepted = "no key needed"
+        requests_mocker.request(method='post', url='http://localhost:8080/{}'.format(
+            self.path), additional_matcher=match_headers, text=accepted)
+
+        assert session.post(self.path, "hello world test").text == accepted
+
 
 if __name__ == '__main__':
     unittest.main()

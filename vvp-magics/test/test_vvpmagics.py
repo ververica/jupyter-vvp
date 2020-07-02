@@ -50,6 +50,33 @@ class VvpMagicsTests(unittest.TestCase):
 
         assert session.get_namespace() is not None
 
+    def test_connect_vvp_uses_api_key(self, requests_mock):
+        key = "myApiKey"
+
+        def match_headers(request):
+            return request.headers['Authorization'] == "Bearer {}".format(key)
+
+        requests_mock.request(method='get', url='http://localhost:8080/namespaces/v1/namespaces/test',
+                              additional_matcher=match_headers,
+                              text="""
+        { "namespace": [{ "name": "namespaces/test" }] }
+        """)
+
+        requests_mock.request(method='get', url='http://localhost:8080/namespaces/v1/namespaces',
+                              additional_matcher=match_headers,
+                              text="""
+        { "namespaces": [{ "name": "namespaces/test" }] }
+        """)
+        magic_line_with_session = "localhost -n test -s session1 -k {}".format(key)
+        magic_line_without_session = "localhost -k {}".format(key)
+        magics = VvpMagics()
+
+        session = magics.connect_vvp(magic_line_with_session)
+        assert session._http_session._auth.api_key == key
+
+        namespaces = magics.connect_vvp(magic_line_without_session)
+        assert namespaces["namespaces"][0]["name"] == "namespaces/test"
+
 
 if __name__ == '__main__':
     unittest.main()
