@@ -6,10 +6,6 @@ from ipywidgets import widgets
 NO_DEFAULT_DEPLOYMENT_MESSAGE = "No default deployment target found."
 VVP_DEFAULT_PARAMETERS_VARIABLE = "vvp_default_parameters"
 
-required_default_parameters = {
-    "metadata.annotations.license/testing": False
-}
-
 
 def deployment_defaults_endpoint(namespace):
     return "/api/v1/namespaces/{}/deployment-defaults".format(namespace)
@@ -37,6 +33,18 @@ deployment_states = {
 
 def all_deployment_states():
     return [state for states in deployment_states.values() for state in states]
+
+
+REQUIRED_DEFAULT_PARAMETERS = {
+    "metadata.annotations.license/testing": False
+}
+
+NON_PARSABLE_DEPLOYMENT_SETTINGS = [
+    "metadata.annotations",
+    "spec.template.metadata.annotations",
+    "spec.template.spec.flinkConfiguration",
+    "spec.template.spec.logging.log4jLoggers"
+]
 
 
 class Deployments:
@@ -80,14 +88,11 @@ class Deployments:
         }
         base_body['metadata']['name'] = cell
         base_body['spec']['deploymentTargetId'] = cls._get_deployment_target(session)
-        cls.set_values_from_flat_parameters(base_body, required_default_parameters)
+        cls.set_values_from_flat_parameters(base_body, REQUIRED_DEFAULT_PARAMETERS)
 
         if override_parameters is not None:
-            cls.set_values_from_flat_parameters(base_body, override_parameters.get('deployment', {}))
-            if base_body.get("spec", {}).get("template", {}).get("spec", {}).get("flinkConfiguration", None):
-                raise VvpParameterException("Flink settings should not be specified in 'deployment',"
-                                            "but instead in 'flink'.")
-            cls.set_flink_parameters(base_body, override_parameters.get('flink', {}))
+            cls.set_values_from_flat_parameters(base_body, override_parameters)
+            cls.set_all_special_case_parameters(base_body, override_parameters)
 
         return base_body
 
@@ -95,6 +100,9 @@ class Deployments:
     def set_values_from_flat_parameters(cls, base_body, parameters):
         try:
             for key in parameters.keys():
+                for special_case in NON_PARSABLE_DEPLOYMENT_SETTINGS:
+                    if key.startswith(special_case):
+                        return
                 cls._set_value_from_flattened_key(base_body, parameters, key)
         except VvpParameterException as exception:
             raise exception
@@ -104,36 +112,37 @@ class Deployments:
                                         "({})".format(exception.__str__()))
 
     @classmethod
-    def set_flink_parameters(cls, base_body, parameters):
+    def set_all_special_case_parameters(cls, base_body, override_parameters):
+        for special_case_prefix in NON_PARSABLE_DEPLOYMENT_SETTINGS:
+            cls._set_special_case_parameters(base_body, special_case_prefix, override_parameters)
+
+    @classmethod
+    def _set_special_case_parameters(cls, base_body, prefix, parameters):
         for key in parameters.keys():
-            cls.set_value_in_dict(base_body, ["spec", "template", "spec", "flinkConfiguration", key], parameters[key])
+            if key.startswith(prefix):
+                keys_chain = prefix.split(".")
+                key_end = key[len(prefix + "."):]
+                keys_chain.append(key_end)
+                cls._set_value_in_dict_from_keys(base_body, keys_chain, parameters[key])
 
     @classmethod
     def _set_value_from_flattened_key(cls, dictionary, parameters, flattened_key):
         value = parameters.get(flattened_key)
-
-        listed_keys = flattened_key.split(".")
-        cls.set_value_in_dict(dictionary, listed_keys, value)
-
-    @classmethod
-    def set_value_in_dict(cls, sub_dictionary, keys, value):
-        try:
-            if sub_dictionary.get(keys[0]) is None:
-                sub_dictionary[keys[0]] = cls.create_nested_entry(keys, value)
-            else:
-                if len(keys) == 1:
-                    sub_dictionary[keys[0]] = value
-                else:
-                    cls.set_value_in_dict(sub_dictionary[keys[0]], keys[1:], value)
-        except AttributeError as exception:
-            raise VvpParameterException("Bad parameters {}, {}".format(keys, value) +
-                                        ": you may be trying to set a subkey value on an already set scalar. ")
+        keys = flattened_key.split(".")
+        cls._set_value_in_dict_from_keys(dictionary, keys, value)
 
     @classmethod
-    def create_nested_entry(cls, keys, value):
+    def _set_value_in_dict_from_keys(cls, dictionary, keys, value):
         if len(keys) == 1:
-            return value
-        return {keys[1]: cls.create_nested_entry(keys[1:], value)}
+            dictionary[keys[0]] = value
+        else:
+            try:
+                if not dictionary.get(keys[0]):
+                    dictionary[keys[0]] = {}
+                cls._set_value_in_dict_from_keys(dictionary[keys[0]], keys[1:], value)
+            except AttributeError as exception:
+                raise VvpParameterException("Bad parameters {} , {} ".format(keys, value) +
+                                            ": you may be trying to set a sub-key value on an already set scalar. ")
 
     @staticmethod
     def _get_deployment_data(deployment_id, session):
