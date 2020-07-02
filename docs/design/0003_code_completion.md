@@ -1,8 +1,8 @@
 # 3 - Code Completion
 
 ## Context
-VVP offers code completion for SQL scripts. As Jupyter Notebooks also provide code completion it would be expected by
- users to also have code completion for the flink_sql magic. 
+VVP offers code completion for SQL scripts. As Jupyter Notebooks also provide code completion 
+it would be expected by users to also have code completion for the flink_sql magic. 
 
 ## Decision
 There are two functions that allow to hook into the code completion mechanism of the interactive shell, 
