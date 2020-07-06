@@ -1,4 +1,4 @@
-from getpass import getpass
+import getpass
 
 from IPython.core.magic import (Magics, magics_class, line_magic, cell_magic)
 from IPython.core.magic_arguments import magic_arguments, argument, parse_argstring
@@ -72,7 +72,7 @@ class VvpMagics(Magics):
 
     @staticmethod
     def get_api_key_interactively():
-        return getpass(prompt="API Key:")
+        return getpass.getpass(prompt="API Key:")
 
     @cell_magic
     @magic_arguments()
