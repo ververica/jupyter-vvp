@@ -10,7 +10,7 @@ def get_deployment_targets_list_endpoint(namespace):
 
 
 def invalid_token():
-    raise NotAuthorizedException("Your credentials are not sufficient to perform this operation.")
+    raise NotAuthorizedException("Bad token, or your credentials are not sufficient to perform this operation.")
 
 
 class VvpSession:
@@ -68,10 +68,15 @@ class VvpSession:
             return False
 
         response = self._http_session.get(get_deployment_targets_list_endpoint(namespace))
-        if response.status_code == 200:
-            return True
-        raise SessionException("Error verifying namespace: code {} returned with message '{}'."
-                               .format(response.status_code, response.text))
+        actions = {
+            200: lambda: True,
+            401: invalid_token,
+            403: invalid_token
+        }
+        return actions.get(
+            response.status_code, SessionException("Error verifying namespace: code {} returned with message '{}'."
+                                                   .format(response.status_code, response.text))
+        )()
 
     def _get_namespace_info(self, namespace):
         request = self._http_session.get(NAMESPACES_ENDPOINT + "/{}".format(namespace))
