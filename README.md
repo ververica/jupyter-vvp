@@ -6,7 +6,7 @@ Experimental Jupyter Integration for Flink SQL via Ververica Platform
 
 ## Installation and usage
 
-The Jupyter integration is implemented as custom magics, the code with instructions on how to build and use can be found
+The Jupyter integration is implemented as custom magics. The code with instructions on how to build and use can be found
 in the [vvp-magics](vvp-magics) folder.
 
 ## Documentation

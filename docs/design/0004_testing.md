@@ -1,7 +1,7 @@
 # 4 - Testing
 
 ## Context
-As the notebooks will run on the users machine, errors will be very hard to find and debug, thus automated tests should
+As the notebooks will run on the user's machine, errors will be very hard to find and debug, thus automated tests should
 be used as much as possible.
 
 ## Decision

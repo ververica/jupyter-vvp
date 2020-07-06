@@ -12,7 +12,7 @@ in the same folder as `setup.py`.
 
 The package can be installed with `pip3 install ./dist/vvpmagics-x.y.z.tar.gz`.
 
-The package also contains a custom kernel that extends the Python3 kernel to provide SQL code completion.
+The package also contains a custom kernel that extends the IPython kernel to provide SQL code completion.
 To install the kernel run `jupyter kernelspec install --user flinksqlkernel` after building the package.
 
 ## Docker setup
