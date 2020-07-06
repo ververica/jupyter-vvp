@@ -4,7 +4,7 @@ import requests_mock
 
 from test.testmocks import ShellMock, ArgsMock
 from vvpmagics.deployments import NO_DEFAULT_DEPLOYMENT_MESSAGE, VvpConfigurationException, Deployments, \
-    VvpParameterException, VVP_DEFAULT_PARAMETERS_VARIABLE
+    VvpParameterException, VVP_DEFAULT_PARAMETERS_VARIABLE, DeploymentException
 from vvpmagics.vvpsession import VvpSession
 
 
@@ -38,7 +38,6 @@ class DeploymentTests(unittest.TestCase):
         VvpSession.default_session_name = None
 
     def _setUpSession(self, requests_mock):
-
         requests_mock.request(method='get', url='http://localhost:8080/api/v1/namespaces/{}/deployment-targets'
                               .format(self.namespace), text="Ignored in session setup.")
 
@@ -114,6 +113,52 @@ class DeploymentTests(unittest.TestCase):
             Deployments().make_deployment(cell, self.session, ShellMock({}), ArgsMock(None))
 
         assert raised_exception.exception.__str__() == NO_DEFAULT_DEPLOYMENT_MESSAGE
+
+    def test_make_deployment_throws_if_not_201_response(self, requests_mock):
+        self._setUpSession(requests_mock)
+
+        deployment_id = """58ea758d-02e2-4b8e-8d60-3c36c3413bf3"""
+        requests_mock.request(method='post',
+                              url='http://localhost:8080{}'.format(sql_deployment_create_endpoint(self.namespace)),
+                              text=("""{ "kind" : "Deployment",
+                                 "metadata" : {
+                                   "id" : "%s",
+                                   "name" : "INSERT INTO testTable1836f SELECT * FROM testTable22293",
+                                   "namespace" : "default"
+                                 },
+                                 "spec" : {
+                                   "state" : "RUNNING",
+                                   "deploymentTargetId" : "0b7e8f13-6943-404e-9809-c14db57d195e"
+                                 } 
+                                 }
+                                 """ % deployment_id),
+                              status_code=500)
+
+        requests_mock.request(method='get',
+                              url='http://localhost:8080{}'.format(deployment_defaults_endpoint(self.namespace)),
+                              text=""" { "kind": "DeploymentDefaults",
+                                "spec": { "deploymentTargetId": "0b7e8f13-6943-404e-9809-c14db57d195e" } } """,
+                              status_code=200
+                              )
+
+        requests_mock.request(method='get',
+                              url='http://localhost:8080{}/{}'.format(
+                                  sql_deployment_create_endpoint(self.namespace),
+                                  deployment_id),
+                              text="""{"DummyKey": "DummyValue"}""",
+                              status_code=200
+                              )
+        requests_mock.request(method='get',
+                              url='http://localhost:8080{}'.format(
+                                  sql_deployment_endpoint(self.namespace, deployment_id)),
+                              text="""{ "kind" : "Deployment",   "status" : { "state" : "RUNNING",
+                                  "running" : { "jobId" : "68ab92d0-1acc-459f-a6ed-26a374e08717" } }
+                                }""")
+
+        cell = """SOME VALID DML QUERY"""
+
+        with self.assertRaises(DeploymentException):
+            Deployments().make_deployment(cell, self.session, ShellMock({}), ArgsMock(None))
 
     def test_set_values_from_flat_parameters(self, requests_mock):
         dictionary = {
