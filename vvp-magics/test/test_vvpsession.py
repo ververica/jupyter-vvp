@@ -13,23 +13,18 @@ class VvpSessionTests(unittest.TestCase):
         VvpSession._sessions = {}
         VvpSession.default_session_name = None
 
-    def test_get_namespace_returns_namespace(self, requests_mocker):
-        requests_mocker.request(method='get', url='http://localhost:8080/namespaces/v1/namespaces', text="""
-                           { "namespaces": [{ "name": "namespaces/test" }] } 
-        """)
-        requests_mocker.request(method='get',
-                                url='http://localhost:8080/namespaces/v1/namespaces/{}'.format(self.namespace), text="""
-                           { "namespace": { "name": "namespaces/test" } }
-        """)
+    def _setup_deployment_targets_mock(self, requests_mocker):
+        requests_mocker.request(method='get', url='http://localhost:8080/api/v1/namespaces/{}/deployment-targets'
+                                .format(self.namespace), text="Ignored in session setup.")
 
+    def test_get_namespace_returns_namespace(self, requests_mocker):
+        self._setup_deployment_targets_mock(requests_mocker)
         session = VvpSession(self.vvp_base_url, self.namespace)
 
         assert session.get_namespace() == self.namespace
 
     def test_get_namespace_info_returns_namespace(self, requests_mocker):
-        requests_mocker.request(method='get', url='http://localhost:8080/namespaces/v1/namespaces', text="""
-                           { "namespaces": [{ "name": "namespaces/test" }] } 
-        """)
+        self._setup_deployment_targets_mock(requests_mocker)
         requests_mocker.request(method='get',
                                 url='http://localhost:8080/namespaces/v1/namespaces/{}'.format(self.namespace), text="""
                            { "namespace": { "name": "namespaces/test" } }
@@ -40,10 +35,7 @@ class VvpSessionTests(unittest.TestCase):
         assert session.get_namespace_info()['name'] == "namespaces/{}".format(self.namespace)
 
     def test_create_session(self, requests_mocker):
-        requests_mocker.request(method='get',
-                                url='http://localhost:8080/namespaces/v1/namespaces/{}'.format(self.namespace), text="""
-                           { "namespace": { "name": "namespaces/test" } }
-        """)
+        self._setup_deployment_targets_mock(requests_mocker)
 
         first_session = VvpSession.create_session(self.vvp_base_url, self.namespace, "session1", set_default=True)
         assert first_session.get_namespace() == self.namespace
@@ -55,10 +47,7 @@ class VvpSessionTests(unittest.TestCase):
         assert VvpSession.default_session_name == "session1"
 
     def test_get_sessions(self, requests_mocker):
-        requests_mocker.request(method='get',
-                                url='http://localhost:8080/namespaces/v1/namespaces/{}'.format(self.namespace), text="""
-                           { "namespace": { "name": "namespaces/test" } }
-        """)
+        self._setup_deployment_targets_mock(requests_mocker)
 
         VvpSession.create_session(self.vvp_base_url, self.namespace, "session1", set_default=True)
         sessions = VvpSession.get_sessions()

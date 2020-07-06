@@ -2,7 +2,15 @@ import json
 
 from .httpsession import HttpSession
 
-namespaces_endpoint = "/namespaces/v1/namespaces"
+NAMESPACES_ENDPOINT = "/namespaces/v1/namespaces"
+
+
+def get_deployment_targets_list_endpoint(namespace):
+    return "/api/v1/namespaces/{}/deployment-targets".format(namespace)
+
+
+def invalid_token():
+    raise NotAuthorizedException("Your credentials are not sufficient to perform this operation.")
 
 
 class VvpSession:
@@ -53,27 +61,40 @@ class VvpSession:
         return self._namespace
 
     def get_namespace_info(self):
-        return self._get_namespace(self._namespace)
+        return self._get_namespace_info(self._namespace)
 
     def _is_valid_namespace(self, namespace):
         if not namespace:
             return False
 
-        request = self._http_session.get(namespaces_endpoint + "/{}".format(namespace))
-        validity_from_statuscodes = {200: True, 400: False, 404: False}
-        return validity_from_statuscodes[request.status_code]
+        response = self._http_session.get(get_deployment_targets_list_endpoint(namespace))
+        if response.status_code == 200:
+            return True
+        raise SessionException("Error verifying namespace: code {} returned with message '{}'."
+                               .format(response.status_code, response.text))
 
-    def _get_namespace(self, namespace):
-        request = self._http_session.get(namespaces_endpoint + "/{}".format(namespace))
+    def _get_namespace_info(self, namespace):
+        request = self._http_session.get(NAMESPACES_ENDPOINT + "/{}".format(namespace))
         namespace = (json.loads(request.text))["namespace"]
         return namespace
 
     @staticmethod
     def get_namespaces(base_url, api_key=None):
-        print("Requesting from {}...".format(base_url + namespaces_endpoint))
-        request = HttpSession(base_url, None, api_key=api_key).get(namespaces_endpoint)
-        namespaces = json.loads(request.text)
-        return namespaces
+
+        request = HttpSession(base_url, None, api_key=api_key).get(NAMESPACES_ENDPOINT)
+
+        def return_namespaces():
+            namespaces = json.loads(request.text)
+            return namespaces
+
+        actions = {
+            200: return_namespaces,
+            401: invalid_token,
+            403: invalid_token
+        }
+        return actions.get(
+            request.status_code, SessionException("An error occurred when obtaining namespace details")
+        )()
 
     def submit_post_request(self, endpoint, requestbody):
         request = self._http_session.post(
@@ -89,6 +110,11 @@ class VvpSession:
 
     def get_base_url(self):
         return self._http_session.get_base_url()
+
+
+class NotAuthorizedException(Exception):
+    def __init__(self, message=""):
+        super(NotAuthorizedException, self).__init__(message)
 
 
 class SessionException(Exception):

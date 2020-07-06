@@ -38,9 +38,9 @@ class DeploymentTests(unittest.TestCase):
         VvpSession.default_session_name = None
 
     def _setUpSession(self, requests_mock):
-        namespaces_response = " {{ 'namespaces': [{{ 'name': 'namespaces/{}' }}] }}".format(self.namespace)
-        requests_mock.request(method='get', url='http://localhost:8080/namespaces/v1/namespaces',
-                              text=namespaces_response)
+
+        requests_mock.request(method='get', url='http://localhost:8080/api/v1/namespaces/{}/deployment-targets'
+                              .format(self.namespace), text="Ignored in session setup.")
 
         requests_mock.request(method='get',
                               url='http://localhost:8080/namespaces/v1/namespaces/{}'.format(self.namespace),
