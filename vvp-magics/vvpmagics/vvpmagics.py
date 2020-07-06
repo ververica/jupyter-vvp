@@ -5,6 +5,7 @@ from IPython.core.magic_arguments import magic_arguments, argument, parse_argstr
 from IPython import get_ipython
 import sys
 
+from vvpmagics.deployments import DeploymentException
 from vvpmagics.flinksql import run_query
 from vvpmagics.vvpsession import VvpSession
 
@@ -94,18 +95,26 @@ class VvpMagics(Magics):
                 if (args.output is not None) and (isinstance(result, DataFrame)):
                     self.shell.user_ns[args.output] = result
                 return result
-            except Exception as exception:
-                if hasattr(exception, 'message'):
-                    self.print_error(exception.message)
+            except DeploymentException as exception:
+                if exception.response:
+                    self.print_error("There was an error creating the deployment. Details can be found in the output.")
+                    return exception.response
                 else:
-                    self.print_error(exception)
-                if args.debug or False:
-                    if hasattr(exception, 'get_details'):
-                        self.print_error(exception.get_details())
-                    raise exception
-
+                    self.print_error_messages(args, exception)
+            except Exception as exception:
+                self.print_error_messages(args, exception)
         else:
             print("Empty cell: doing nothing.")
+
+    def print_error_messages(self, args, exception):
+        if hasattr(exception, 'message'):
+            self.print_error(exception.message)
+        else:
+            self.print_error(exception)
+        if args.debug or False:
+            if hasattr(exception, 'get_details'):
+                self.print_error(exception.get_details())
+            raise exception
 
     def print_error(self, error_message):
         self._ipython_shell.write_err(u"{}\n".format(error_message))

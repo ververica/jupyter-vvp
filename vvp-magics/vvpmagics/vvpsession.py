@@ -9,10 +9,6 @@ def get_deployment_targets_list_endpoint(namespace):
     return "/api/v1/namespaces/{}/deployment-targets".format(namespace)
 
 
-def invalid_token():
-    raise NotAuthorizedException("Bad token, or your credentials are not sufficient to perform this operation.")
-
-
 class VvpSession:
     _sessions = {}
     default_session_name = None
@@ -69,14 +65,12 @@ class VvpSession:
 
         response = self._http_session.get(get_deployment_targets_list_endpoint(namespace))
         actions = {
-            200: lambda: True,
-            401: invalid_token,
-            403: invalid_token
+            200: lambda x: True,
+            401: NotAuthorizedException.invalid_token,
+            403: NotAuthorizedException.invalid_token,
+            "unknown": SessionException.namespace_validation_error
         }
-        return actions.get(
-            response.status_code, SessionException("Error verifying namespace: code {} returned with message '{}'."
-                                                   .format(response.status_code, response.text))
-        )()
+        return actions.get(response.status_code, actions['unknown'])(response)
 
     def _get_namespace_info(self, namespace):
         request = self._http_session.get(NAMESPACES_ENDPOINT + "/{}".format(namespace))
@@ -86,20 +80,19 @@ class VvpSession:
     @staticmethod
     def get_namespaces(base_url, api_key=None):
 
-        request = HttpSession(base_url, None, api_key=api_key).get(NAMESPACES_ENDPOINT)
+        response = HttpSession(base_url, None, api_key=api_key).get(NAMESPACES_ENDPOINT)
 
         def return_namespaces():
-            namespaces = json.loads(request.text)
+            namespaces = json.loads(response.text)
             return namespaces
 
         actions = {
             200: return_namespaces,
-            401: invalid_token,
-            403: invalid_token
+            401: NotAuthorizedException.invalid_token,
+            403: NotAuthorizedException.invalid_token,
+            "unknown": SessionException.namespace_details_error
         }
-        return actions.get(
-            request.status_code, SessionException("An error occurred when obtaining namespace details")
-        )()
+        return actions.get(response.status_code, actions['unknown'])()
 
     def submit_post_request(self, endpoint, requestbody):
         request = self._http_session.post(
@@ -121,8 +114,21 @@ class NotAuthorizedException(Exception):
     def __init__(self, message=""):
         super(NotAuthorizedException, self).__init__(message)
 
+    @classmethod
+    def invalid_token(cls, response=None):
+        raise cls("Bad token, or your credentials are not sufficient to perform this operation.")
+
 
 class SessionException(Exception):
 
     def __init__(self, message=""):
         super(SessionException, self).__init__(message)
+
+    @classmethod
+    def namespace_validation_error(cls, response):
+        raise cls("Error verifying namespace: code {} returned with message '{}'."
+                  .format(response.status_code, response.text))
+
+    @classmethod
+    def namespace_details_error(cls):
+        raise cls("Problem getting list of namespaces.")

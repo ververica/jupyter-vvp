@@ -66,7 +66,8 @@ class DeploymentTests(unittest.TestCase):
                                    "deploymentTargetId" : "0b7e8f13-6943-404e-9809-c14db57d195e"
                                  } 
                                  }
-                                 """ % deployment_id))
+                                 """ % deployment_id),
+                              status_code=201)
 
         requests_mock.request(method='get',
                               url='http://localhost:8080{}'.format(deployment_defaults_endpoint(self.namespace)),
@@ -98,7 +99,8 @@ class DeploymentTests(unittest.TestCase):
 
         requests_mock.request(method='post',
                               url='http://localhost:8080{}'.format(sql_validate_endpoint(self.namespace)),
-                              text=""" { "validationResult": "VALIDATION_RESULT_VALID_INSERT_QUERY" } """)
+                              text=""" { "validationResult": "VALIDATION_RESULT_VALID_INSERT_QUERY" } """,
+                              status_code=201)
 
         requests_mock.request(method='get',
                               url='http://localhost:8080{}'.format(deployment_defaults_endpoint(self.namespace)),
