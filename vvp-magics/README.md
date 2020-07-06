@@ -12,6 +12,9 @@ in the same folder as `setup.py`.
 
 The package can be installed with `pip3 install ./dist/vvpmagics-x.y.z.tar.gz`.
 
+The package also contains a custom kernel that extends the Python3 kernel to provide SQL code completion.
+To install the kernel run `jupyter kernelspec install --user flinksqlkernel` after building the package.
+
 ## Docker setup
 
 First build the vvpmagics sdist package as above. Then create the Docker image:
@@ -29,6 +32,8 @@ http://127.0.0.1:8888/?token=814a4f1ef6a10328f25e67aeb9e5d67e381aff0b2fc7ad2b
 ```
 
 In the notebook use vvp-gateway as hostname and 8080 as port. An example notebook can be found in the work folder.
+
+The Docker image comes with the FlinkSql Kernel for code completion pre-installed.
 
 ## Sessions
 
@@ -138,6 +143,10 @@ See the example notebooks:
 - [Connect to VVP](./example_notebooks/ConnectToVVP.test.ipynb)
 - [DDL and DML commands and queries](./example_notebooks/FlinkSql.test.ipynb)
 
+## Error messages
+
+Both the `%connect_vvp` and the `%%flink_sql` magics support the `-d/--debug` flag to show full error messages.
+In case of error results from the VVP it will display the full JSON response.  
 
 ## Help
 ```
