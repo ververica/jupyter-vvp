@@ -66,9 +66,9 @@ class VvpSession:
         response = self._http_session.get(get_deployment_targets_list_endpoint(namespace))
         actions = {
             200: lambda x: True,
-            401: NotAuthorizedException.invalid_token,
-            403: NotAuthorizedException.invalid_token,
-            "unknown": SessionException.namespace_validation_error
+            401: NotAuthorizedException.raise_invalid_token,
+            403: NotAuthorizedException.raise_invalid_token,
+            "unknown": SessionException.raise_namespace_validation_error
         }
         return actions.get(response.status_code, actions['unknown'])(response)
 
@@ -88,9 +88,9 @@ class VvpSession:
 
         actions = {
             200: return_namespaces,
-            401: NotAuthorizedException.invalid_token,
-            403: NotAuthorizedException.invalid_token,
-            "unknown": SessionException.namespace_details_error
+            401: NotAuthorizedException.raise_invalid_token,
+            403: NotAuthorizedException.raise_invalid_token,
+            "unknown": SessionException.raise_namespace_details_error
         }
         return actions.get(response.status_code, actions['unknown'])()
 
@@ -115,7 +115,7 @@ class NotAuthorizedException(Exception):
         super(NotAuthorizedException, self).__init__(message)
 
     @classmethod
-    def invalid_token(cls, response=None):
+    def raise_invalid_token(cls, response=None):
         raise cls("Bad token, or your credentials are not sufficient to perform this operation.")
 
 
@@ -125,10 +125,10 @@ class SessionException(Exception):
         super(SessionException, self).__init__(message)
 
     @classmethod
-    def namespace_validation_error(cls, response):
+    def raise_namespace_validation_error(cls, response):
         raise cls("Error verifying namespace: code {} returned with message '{}'."
                   .format(response.status_code, response.text))
 
     @classmethod
-    def namespace_details_error(cls):
+    def raise_namespace_details_error(cls):
         raise cls("Problem getting list of namespaces.")
