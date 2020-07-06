@@ -51,6 +51,23 @@ The request URL used is shown.
 This will connect and create a session with the name mysession.
 If no session exists then this will be the default.
 
+### Using API Keys
+
+- The argument `-k <API-Key>` (or `--key <API-Key>`) 
+  will use the given value in `<API-Key>` as the API Key.
+- To avoid having keys in notebooks, 
+  the argument `-K` or `--prompt_key` can be specified,
+  which asks the user to enter the key,
+  and overrides any value specified by `-k`.
+
+If no keys are specified, no API keys are used.
+
+#### Examples:
+```
+%connect_vvp my.host.com -n default -s mySession -k 10504c2d-55f0-4969-ba83-26fad5f1640f
+%connect_vvp my.host.com -n default -s mySession -K
+```
+
 ## Setting deployment parameters
 Deployments of SQL INSERT jobs can be customised by setting parameters.
 The possible settings keys are listed in a parameters dictionary in the example notebook,

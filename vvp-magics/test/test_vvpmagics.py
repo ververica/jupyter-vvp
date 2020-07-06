@@ -1,4 +1,5 @@
 import unittest
+from unittest.mock import patch, MagicMock
 
 import requests_mock
 
@@ -76,6 +77,59 @@ class VvpMagicsTests(unittest.TestCase):
 
         namespaces = magics.connect_vvp(magic_line_without_session)
         assert namespaces["namespaces"][0]["name"] == "namespaces/test"
+
+    def test_connect_vvp_with_session_requests_api_key(self, requests_mock):
+        key = "myApiKey"
+
+        def match_headers(request):
+            return request.headers['Authorization'] == "Bearer {}".format(key)
+
+        requests_mock.request(method='get', url='http://localhost:8080/namespaces/v1/namespaces/test',
+                              additional_matcher=match_headers,
+                              text="""
+        { "namespace": [{ "name": "namespaces/test" }] }
+        """)
+
+        requests_mock.request(method='get', url='http://localhost:8080/namespaces/v1/namespaces',
+                              additional_matcher=match_headers,
+                              text="""
+        { "namespaces": [{ "name": "namespaces/test" }] }
+        """)
+        magic_line_with_session = "localhost -n test -s session1 -K"
+        magic_line_without_session = "localhost -K"
+        magics = VvpMagics()
+
+        VvpMagics.get_api_key_interactively = MagicMock(return_value=key)
+        session = magics.connect_vvp(magic_line_with_session)
+        assert session._http_session._auth.api_key == key
+        VvpMagics.get_api_key_interactively.assert_called_once()
+
+    def test_connect_vvp_without_session_requests_api_key(self, requests_mock):
+        key = "myApiKey"
+
+        def match_headers(request):
+            return request.headers['Authorization'] == "Bearer {}".format(key)
+
+        requests_mock.request(method='get', url='http://localhost:8080/namespaces/v1/namespaces/test',
+                              additional_matcher=match_headers,
+                              text="""
+        { "namespace": [{ "name": "namespaces/test" }] }
+        """)
+
+        requests_mock.request(method='get', url='http://localhost:8080/namespaces/v1/namespaces',
+                              additional_matcher=match_headers,
+                              text="""
+        { "namespaces": [{ "name": "namespaces/test" }] }
+        """)
+        magic_line_with_session = "localhost -n test -s session1 -K"
+        magic_line_without_session = "localhost -K"
+        magics = VvpMagics()
+
+        VvpMagics.get_api_key_interactively = MagicMock(return_value=key)
+
+        namespaces = magics.connect_vvp(magic_line_without_session)
+        assert namespaces["namespaces"][0]["name"] == "namespaces/test"
+        VvpMagics.get_api_key_interactively.assert_called_once()
 
 
 if __name__ == '__main__':
