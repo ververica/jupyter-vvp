@@ -7,21 +7,31 @@ Experimental support for vvp using IPython Magics commands.
 ## Packaging
 
 This can be done with
-`python3 setup.py sdist`
+```
+python3 setup.py sdist
+```
 in the same folder as `setup.py`.
 
-The package can be installed with `pip3 install ./dist/vvpmagics-x.y.z.tar.gz`.
+The package can be installed locally with 
+```
+pip3 install ./dist/vvpmagics-x.y.z.tar.gz
+```
 
 The package also contains a custom kernel that extends the IPython kernel to provide SQL code completion.
 To install the kernel run `jupyter kernelspec install --user flinksqlkernel` after building the package.
 
 ## Docker setup
 
-First build the vvpmagics sdist package as above. Then create the Docker image:
+1. First build the vvpmagics sdist package as above.
+2. Then create the Docker image:
 ```
 docker build . --tag vvp-jupyter:latest
 ```
-Finally run docker compose to set vvp environment up:
+This image can be run independently and used to connect to any running VVP instance.
+The Docker image comes with the FlinkSql Kernel for code completion pre-installed.
+
+### Docker-compose with VVP
+Run docker compose to set the full vvp environment up:
 ```
 docker-compose up vvp-gateway vvp-appmanager vvp-ui vvp-jupyter
 ```
@@ -31,30 +41,39 @@ To log into Jupyter, look into the docker compose output and find a line that lo
 http://127.0.0.1:8888/?token=814a4f1ef6a10328f25e67aeb9e5d67e381aff0b2fc7ad2b
 ```
 
-In the notebook use vvp-gateway as hostname and 8080 as port. An example notebook can be found in the work folder.
+In the notebook use `vvp-gateway` as hostname and `8080` as port.
+An example notebook can be found in the `work` folder.
 
-The Docker image comes with the FlinkSql Kernel for code completion pre-installed.
 
-## Sessions
+## Loading the extension
 
 From within IPython (`ipython3`) or an IPython3 kernel in a local Jupyter instance,
 run
 ```
 %load_ext vvpmagics
-%connect_vvp localhost 
 ```
-to 
- 1. load the extension; and
- 2. list the available namespaces.
- 
-If a namespace is specified then just that namespace will be called.
-The request URL used is shown.
+to load the extension and register the magics.
 
+## Sessions
+
+A *session* corresponds to a connection to a VVP instance,
+specifying its hostname and port,
+and an API key if required.
+The session has a name for convenient reference.
+
+From within IPython (`ipython3`) or an IPython3 kernel in a Jupyter instance,
+run
 ```
-%connect_vvp localhost -n default -s mysession
+%connect_vvp localhost -p 8080 -n default -s mysession
 ```
-This will connect and create a session with the name mysession.
-If no session exists then this will be the default.
+This will connect and create a session with the name `mysession`.
+The VVP host in this example is `localhost` and the port is `8080`.
+The hostname should be the name under which VVP is accessible from the Jupyter server.
+If no session exists then this session will be set as the default.
+
+Session names are treated by the magics as strings.
+The corresponding session object, with that name,
+is found and taken from the local user context.
 
 ### Using API Keys
 
@@ -69,8 +88,40 @@ If no keys are specified, no API keys are used.
 
 #### Examples:
 ```
-%connect_vvp my.host.com -n default -s mySession -k 10504c2d-55f0-4969-ba83-26fad5f1640f
-%connect_vvp my.host.com -n default -s mySession -K
+%connect_vvp HOSTNAME -n default -s mySession -k 10504c2d-55f0-4969-ba83-26fad5f1640f
+%connect_vvp HOSTNAME -n default -s mySession -K
+```
+
+
+## SQL requests
+Example:
+```
+%%flink_sql 
+   ...: CREATE TABLE `testTable2` ( 
+   ...:   id bigint 
+   ...:   -- Watermark definition, here for a timestamp column 'ts' 
+   ...:   -- WATERMARK FOR ts AS ts - INTERVAL '1' MINUTE 
+   ...: ) 
+   ...: -- Free text comment 
+   ...: COMMENT '' 
+   ...: WITH ( 
+   ...:   -- Kafka connector configuration. See documentation for all configuration options. 
+   ...:     'connector.type' = 'kafka', 
+   ...:     'connector.version' = 'universal', 
+   ...:     'connector.topic' = 'testTopic', 
+   ...:     'connector.properties.bootstrap.servers' = 'localhost:9092', 
+   ...:     'connector.properties.group.id' = '...', 
+   ...:     'connector.startup-mode' = 'earliest-offset' 
+   ...: ) 
+
+```
+This will return the HTTP response body from the back end.
+If there is a `resultsTable` object then this will be returned as a Pandas Dataframe.
+
+A session can be specified in the first line thus:
+```
+%%flinksql mySession
+...
 ```
 
 ## Setting deployment parameters
@@ -97,44 +148,28 @@ Some relevant examples include:
 
 ### Flink settings
 In the deployment settings,
-keys of the form `spec.template.spec.flinkConfiguration.<FlinkConfigurationKey>` can be used.
+keys of the form 
+```
+spec.template.spec.flinkConfiguration.<FlinkConfigurationKey>
+```
+can be used.
 The user can specify Flink configuration parameters in place of `<FlinkConfigurationKey>`.
-For example, `spec.template.spec.flinkConfiguration.state.savepoints.dir: "s3://flink/savepoints"`.
-See [here](https://docs.ververica.com/user_guide/deployments/configure_flink.html).
+For example, 
+```
+"spec.template.spec.flinkConfiguration.state.savepoints.dir": "s3://flink/savepoints"
+```
+See [here](https://docs.ververica.com/user_guide/deployments/configure_flink.html)
+for deployment configuration documentation.
 
 Note that the placeholders (e.g., `{{Namespace}}`) appearing in `flinkConfiguration` settings
 are left untouched by `%%flink_sql`, so can be used as normal;
 e.g.:
-```spec.template.spec.flinkConfiguration.state.savepoints.dir: s3://flink/savepoints/{{ namespace }}```
-See [here](https://docs.ververica.com/administration/deployment_defaults.html#placeholders-in-flink-configuration).
-
-## SQL requests
 ```
-%%flink_sql mySession 
-   ...: CREATE TABLE `testTable2` ( 
-   ...:   id bigint 
-   ...:   -- Watermark definition, here for a timestamp column 'ts' 
-   ...:   -- WATERMARK FOR ts AS ts - INTERVAL '1' MINUTE 
-   ...: ) 
-   ...: -- Free text comment 
-   ...: COMMENT '' 
-   ...: WITH ( 
-   ...:   -- Kafka connector configuration. See documentation for all configuration options. 
-   ...:     'connector.type' = 'kafka', 
-   ...:     'connector.version' = 'universal', 
-   ...:     'connector.topic' = 'testTopic', 
-   ...:     'connector.properties.bootstrap.servers' = 'localhost:9092', 
-   ...:     'connector.properties.group.id' = '...', 
-   ...:     'connector.startup-mode' = 'earliest-offset' 
-   ...: ) 
-
+"spec.template.spec.flinkConfiguration.state.savepoints.dir": "s3://flink/savepoints/{{ namespace }}"
 ```
-This will return the HTTP response body from the back end.
-If there is a `resultsTable` object then this will be returned as a Pandas Dataframe.
+See [here](https://docs.ververica.com/administration/deployment_defaults.html#placeholders-in-flink-configuration)
+for further details on placeholders.
 
-Note: the `mySession` variable is actually referenced 
-by treating its input to the magic as a string 
-and finding the object from the local user scope by name.
 
 ## Further examples
 
@@ -145,7 +180,8 @@ See the example notebooks:
 
 ## Error messages
 
-Both the `%connect_vvp` and the `%%flink_sql` magics support the `-d/--debug` flag to show full error messages.
+Both the `%connect_vvp` and the `%%flink_sql` magics support the `-d/--debug` flag
+to show full error messages.
 In case of error results from the VVP it will display the full JSON response.  
 
 ## Help
