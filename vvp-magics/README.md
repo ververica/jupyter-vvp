@@ -75,6 +75,12 @@ Session names are treated by the magics as strings.
 The corresponding session object, with that name,
 is found and taken from the local user context.
 
+Session names can be listed by executing
+```python
+from vvpmagics import VvpSession
+VvpSession.get_sessions()
+```
+
 ### Using API Keys
 
 - The argument `-k <API-Key>` (or `--key <API-Key>`) 
