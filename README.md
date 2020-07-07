@@ -19,4 +19,7 @@ Documentation for design decisions can be found in the [docs folder](docs/design
 
 In order to start a docker compose cluster containing the VVP and the Jupyter notebook with the installed magics,
 first build the Docker file as described in the [Readme](vvp-magics/README.md), then run
-`docker-compose up vvp-gateway vvp-appmanager vvp-ui vvp-jupyter`.
+
+```shell
+docker-compose up vvp-gateway vvp-appmanager vvp-ui vvp-jupyter
+```
