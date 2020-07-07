@@ -38,6 +38,8 @@ class VvpMagics(Magics):
     @magic_arguments()
     @argument('hostname', type=str, help='Hostname')
     @argument('-p', '--port', type=str, default="8080", help='Port')
+    @argument('-S', '--ssl', type=bool, default=False, nargs="?", const=True,
+              help="Use HTTPS for communication with VVP")
     @argument('-n', '--namespace', type=str, help='Namespace. If empty, lists all namespaces.')
     @argument('-k', '--key', type=str, help='API Key as cleartext string.')
     @argument('-K', '--prompt_key', type=bool, default=False, nargs="?", const=True,
@@ -51,7 +53,10 @@ class VvpMagics(Magics):
         args = parse_argstring(self.connect_vvp, line)
         hostname = args.hostname
         port = args.port
-        vvp_base_url = "http://{}:{}".format(hostname, port)
+        protocol = "http"
+        if args.ssl or False:
+            protocol = "https"
+        vvp_base_url = "{}://{}:{}".format(protocol, hostname, port)
         try:
             api_key = args.key
             if args.prompt_key:
