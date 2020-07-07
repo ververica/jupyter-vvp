@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch
 
 import requests_mock
+from IPython.testing.globalipapp import get_ipython
 
 from test.testmocks import ArgsMock, ShellMock
 from vvpmagics.deployments import Deployments
@@ -33,6 +34,11 @@ def sql_deployment_create_endpoint(namespace):
 class FlinkSqlTests(unittest.TestCase):
     vvp_base_url = "http://localhost:8080"
     namespace = "test"
+    ipython_session = None
+
+    @classmethod
+    def setUpClass(cls):
+        cls.ipython_session = get_ipython()
 
     def setUp(self):
         VvpSession._sessions = {}
@@ -82,7 +88,7 @@ class FlinkSqlTests(unittest.TestCase):
         response = run_query(self.session, cell, None, None)
         assert response.iloc[0]['table name'] == 'testTable'
 
-    def test_flink_sql_executes_valid_dml_statement(self, requests_mock, ):
+    def test_flink_sql_executes_valid_dml_statement(self, requests_mock):
         self._setUpSession(requests_mock)
 
         args = ArgsMock(None)

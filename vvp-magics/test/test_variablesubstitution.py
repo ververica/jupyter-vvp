@@ -1,20 +1,28 @@
 import unittest
 
-from IPython.testing.globalipapp import start_ipython
+from IPython.testing.globalipapp import get_ipython
 
 from vvpmagics.variablesubstitution import VvpFormatter, VariableSubstitutionException
 
 
 class VariableSubstitutionTests(unittest.TestCase):
+
+    ipython_session = None
+
     @classmethod
     def setUpClass(cls):
-        cls.ipython_session = start_ipython()
+        cls.ipython_session = get_ipython()
 
     def setUp(self):
-        self.ipython_session.run_cell(raw_cell='%reset -f')
+        self.ipy_session = self.ipython_session
+        self.ipy_session.run_cell(raw_cell='%reset -f')
+
+    # @classmethod
+    # def tearDownClass(cls):
+    #     pass
 
     def test_substitute_user_variables_works(self):
-        ipython_session = self.ipython_session
+        ipython_session = self.ipy_session
 
         input_text = """
         INSERT INTO {{ namespace }}.{resultsTable}
@@ -50,7 +58,7 @@ class VariableSubstitutionTests(unittest.TestCase):
             assert exception.variable_name == "var2"
 
     def test_substitute_variables_works_in_simple_case(self):
-        ipython_session = self.ipython_session
+        ipython_session = self.ipy_session
 
         input_text = "{var1} sat on {var2}."
         escaped_text = input_text
@@ -63,7 +71,7 @@ class VariableSubstitutionTests(unittest.TestCase):
         assert formatted == "The cat sat on the mat."
 
     def test_substitute_variables_four_braces_transformed_to_two(self):
-        ipython_session = self.ipython_session
+        ipython_session = self.ipy_session
 
         input_text = "{var1} sat on {{ sittingObject }}."
         escaped_text = "{var1} sat on {{{{ sittingObject }}}}."
