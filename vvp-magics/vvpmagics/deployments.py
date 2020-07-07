@@ -55,9 +55,21 @@ class Deployments:
         endpoint = sql_deployment_create_endpoint(session.get_namespace())
         body = cls._build_deployment_request(cell, session, parameters)
         deployment_creation_response = session.submit_post_request(endpoint=endpoint, requestbody=json.dumps(body))
-        deployment_id = json.loads(deployment_creation_response.text)['metadata']['id']
-        cls._show_output(deployment_id, session)
-        return deployment_id
+        if deployment_creation_response.status_code == 201:
+            deployment_id = json.loads(deployment_creation_response.text)['metadata']['id']
+            cls._show_output(deployment_id, session)
+            return deployment_id
+        return cls.handle_deployment_error(deployment_creation_response)
+
+    @classmethod
+    def handle_deployment_error(cls, deployment_creation_response):
+        status_code = deployment_creation_response.status_code
+        response_body = json.loads(deployment_creation_response.text)
+        if status_code == 400:
+            raise DeploymentException(message="There was an error creating the deployment.", response=response_body)
+        else:
+            raise DeploymentException(message="There was an error creating the deployment: status code {}."
+                                      .format(status_code))
 
     @staticmethod
     def _get_deployment_target(session):
@@ -213,6 +225,13 @@ class Deployments:
         with status_output:
             print("Click button to update deployment status.")
         display(widgets.HBox(children=(button, status_output, link_output)))
+
+
+class DeploymentException(Exception):
+    def __init__(self, message="", sql=None, response=None):
+        super(DeploymentException, self).__init__(message)
+        self.sql = sql
+        self.response = response
 
 
 class VvpConfigurationException(Exception):
