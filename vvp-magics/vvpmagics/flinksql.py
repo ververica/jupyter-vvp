@@ -2,6 +2,7 @@ import json
 
 from vvpmagics.deployments import Deployments
 from vvpmagics.jsonconversion import json_convert_to_dataframe
+from vvpmagics.variablesubstitution import VvpFormatter
 
 
 def sql_execute_endpoint(namespace):
@@ -42,7 +43,8 @@ def is_supported_in(responses, response):
     return response['validationResult'] in responses
 
 
-def run_query(session, cell, shell, args):
+def run_query(session, raw_cell, shell, args):
+    cell = VvpFormatter(raw_cell, shell.user_ns).substitute_user_variables()
     validation_response = _validate_sql(cell, session)
     if validation_response.status_code != 200:
         raise FlinkSqlRequestException("Bad HTTP request, return code {}".format(validation_response.status_code),

@@ -5,6 +5,8 @@ import unittest
 import random
 from uuid import UUID
 
+from IPython.testing.globalipapp import get_ipython
+
 from vvpmagics import VvpMagics
 from vvpmagics.vvpsession import VvpSession
 
@@ -16,8 +18,14 @@ def random_string():
 
 
 class VvpMagicsTestsAgainstBackend(unittest.TestCase):
+    ipython_session = None
+
+    @classmethod
+    def setUpClass(cls):
+        cls.ipython_session = get_ipython()
 
     def setUp(self):
+        self.ipython_session.run_cell(raw_cell='%reset -f')
         VvpSession._sessions = {}
         VvpSession.default_session_name = None
 
