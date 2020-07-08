@@ -211,9 +211,14 @@ class Deployments:
                     state = cls._get_deployment_state(deployment_id, session)
                     if state == "CANCELLED":
                         delete_button.disabled = False
+                    cancel_button.state = True
                 except DeploymentStateException as exception:
                     status_button.disabled = False
-                    raise exception
+                    clear_output(wait=True)
+                    print("Couldn't get deployment state.")
+                    delete_button.disabled = True
+                    cancel_button.disabled = True
+                    return
                 clear_output(wait=True)
                 print("Status: {}.".format(state))
                 status_button.button_style = get_status_button_style(state)
