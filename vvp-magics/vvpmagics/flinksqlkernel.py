@@ -59,6 +59,8 @@ def fetch_vvp_suggestions(session, code, cursor_pos, command_line_length):
     suggestions = complete_sql(sql, sql_pos, session)
     # print(suggestions.text, file=open('dbg.log', 'a')) # dbg
     suggest_json = json.loads(suggestions.text)
+    if 'completions' not in suggest_json:
+        return None
     matches = []
     for suggestion in suggest_json['completions']:
         matches.append(suggestion["text"])
