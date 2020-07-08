@@ -141,7 +141,7 @@ For example, setting
 topic_name = "myTopic"
 ```
 
-would allows the user (as in the example above) to do
+allows the user (as in the example above) to do
 
 ```
 %%flink_sql 
