@@ -98,7 +98,6 @@ If no keys are specified, no API keys are used.
 %connect_vvp HOSTNAME -n default -s mySession -K
 ```
 
-
 ## SQL requests
 Example:
 ```
@@ -121,14 +120,52 @@ Example:
    ...: ) 
 
 ```
+
 This will return the HTTP response body from the back end.
 If there is a `resultsTable` object then this will be returned as a Pandas Dataframe.
 
 A session can be specified in the first line thus:
+
 ```
 %%flinksql mySession
 ...
 ```
+
+## Substituting user variables
+
+User variables defined in the notebook can be referenced in `flink_sql` cells.
+To reference the variable, surround it with braces.
+For example, setting
+
+```python
+topic_name = "myTopic"
+```
+
+would allows the user (as in the example above) to do
+
+```
+%%flink_sql 
+
+    .....
+
+   ...: WITH ( 
+   ...:     'connector.topic' = '{topic_name}', 
+
+    .....
+
+   ...: ) 
+```
+
+The cell is treated as a string,
+and variables are replaced using Python's `string.format()` method,
+so in principle all variables
+that have a reasonable representation as a string can be used.
+The scope is the `user_ns` dictionary,
+accessed by Python via the IPython shell object.
+
+Take care to avoid nesting braced expressions,
+but note that double-brace placeholders may also be used (see below).
+
 
 ## Setting deployment parameters
 Deployments of SQL INSERT jobs can be customised by setting parameters.
