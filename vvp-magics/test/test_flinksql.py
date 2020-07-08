@@ -35,10 +35,15 @@ class FlinkSqlTests(unittest.TestCase):
     vvp_base_url = "http://localhost:8080"
     namespace = "test"
     ipython_session = None
+    real_formatter_method = None
 
     @classmethod
     def setUpClass(cls):
-        pass
+        cls.real_formatter_method = VvpFormatter.substitute_user_variables
+
+    @classmethod
+    def tearDownClass(cls):
+        VvpFormatter.substitute_user_variables = cls.real_formatter_method
 
     def setUp(self):
         VvpSession._sessions = {}
@@ -67,9 +72,10 @@ class FlinkSqlTests(unittest.TestCase):
                                   "rows": [{"cells": [{"value": "testTable"}]}]}} """)
 
         cell = """FAKE SQL COMMAND"""
+        shell = ShellMock({})
 
         VvpFormatter.substitute_user_variables = MagicMock(return_value=cell)
-        response = run_query(self.session, cell, None, None)
+        response = run_query(self.session, cell, shell, None)
         assert response.iloc[0]['table name'] == 'testTable'
 
     def test_flink_sql_executes_valid_ddl_statement(self, requests_mock):
@@ -86,8 +92,9 @@ class FlinkSqlTests(unittest.TestCase):
 
         cell = """FAKE SQL COMMAND"""
 
+        shell = ShellMock({})
         VvpFormatter.substitute_user_variables = MagicMock(return_value=cell)
-        response = run_query(self.session, cell, None, None)
+        response = run_query(self.session, cell, shell, None)
         assert response.iloc[0]['table name'] == 'testTable'
 
     def test_flink_sql_executes_valid_dml_statement(self, requests_mock):
@@ -142,10 +149,11 @@ class FlinkSqlTests(unittest.TestCase):
                               "message": "Table `default`.`default`.`test` already exists.", "cause": ""}} """)
 
         cell = """BAD SQL COMMAND"""
+        shell = ShellMock({})
 
         with self.assertRaises(SqlSyntaxException) as raised:
             VvpFormatter.substitute_user_variables = MagicMock(return_value=cell)
-            run_query(self.session, cell, None, None)
+            run_query(self.session, cell, shell, None)
             assert raised.exception.sql == cell
 
     def test_flink_sql_throws_if_response_unsupported(self, requests_mock):
@@ -155,10 +163,11 @@ class FlinkSqlTests(unittest.TestCase):
                               text=""" { "validationResult": "SOME_UNSUPPORTED_RESPONSE" } """)
 
         cell = """SOME SQL COMMAND"""
+        shell = ShellMock({})
 
         with self.assertRaises(FlinkSqlRequestException) as raised_exception:
             VvpFormatter.substitute_user_variables = MagicMock(return_value=cell)
-            run_query(self.session, cell, None, None)
+            run_query(self.session, cell, shell, None)
 
         assert raised_exception.exception.sql == cell
 
@@ -171,10 +180,11 @@ class FlinkSqlTests(unittest.TestCase):
                               status_code=400)
 
         cell = """SOME SQL COMMAND"""
+        shell = ShellMock({})
 
         with self.assertRaises(FlinkSqlRequestException) as raised_exception:
             VvpFormatter.substitute_user_variables = MagicMock(return_value=cell)
-            run_query(self.session, cell, None, None)
+            run_query(self.session, cell, shell, None)
             assert raised_exception.exception.sql == cell
 
 

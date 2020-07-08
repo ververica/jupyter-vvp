@@ -1,38 +1,17 @@
 import unittest
 
-from IPython.testing import globalipapp
-from IPython.testing.globalipapp import get_ipython
-
 from vvpmagics.variablesubstitution import VvpFormatter, VariableSubstitutionException
 
 
 class VariableSubstitutionTests(unittest.TestCase):
 
-    ipython_session = None
-
-    @classmethod
-    def setUpClass(cls):
-        delattr(globalipapp.start_ipython,'already_called')
-        cls.ipython_session = get_ipython()
-
-    def setUp(self):
-        self.ipy_session = self.ipython_session
-        self.ipy_session.run_cell(raw_cell='%reset -f')
-
-    # @classmethod
-    # def tearDownClass(cls):
-    #     pass
-
     def test_substitute_user_variables_works(self):
-        ipython_session = self.ipy_session
-
         input_text = """
         INSERT INTO {{ namespace }}.{resultsTable}
         SELECT * FROM {{ namespace }}.{tableName}
         """
-        formatter = VvpFormatter(input_text)
-        ipython_session.run_cell(raw_cell='resultsTable="table1"')
-        ipython_session.run_cell(raw_cell='tableName="table2"')
+        user_ns = {"resultsTable": "table1", "tableName": "table2"}
+        formatter = VvpFormatter(input_text, user_ns)
 
         expected_output = """
         INSERT INTO {{ namespace }}.table1
@@ -48,38 +27,30 @@ class VariableSubstitutionTests(unittest.TestCase):
         assert VvpFormatter._prepare_escaped_variables(input_text) == expected
 
     def test_substitute_user_variables_undefined_variable_throws(self):
-        ipython_session = self.ipython_session
-
         input_text = "{var1} sat on {var2}."
-        ipython_session.run_cell(raw_cell='var1 = "The cat"')
-
-        formatter = VvpFormatter(input_text)
+        user_ns = {"var1": "The cat"}
+        formatter = VvpFormatter(input_text, user_ns)
 
         with self.assertRaises(VariableSubstitutionException) as exception:
             formatter.substitute_user_variables()
             assert exception.variable_name == "var2"
 
     def test_substitute_variables_works_in_simple_case(self):
-        ipython_session = self.ipy_session
-
         input_text = "{var1} sat on {var2}."
         escaped_text = input_text
-        ipython_session.run_cell(raw_cell='var1 = "The cat"')
-        ipython_session.run_cell(raw_cell='var2 = "the mat"')
+        user_ns = {"var1": "The cat", "var2": "the mat"}
 
-        formatter = VvpFormatter(input_text)
+        formatter = VvpFormatter(input_text, user_ns)
         formatted = formatter._substitute_variables(escaped_text)
 
         assert formatted == "The cat sat on the mat."
 
     def test_substitute_variables_four_braces_transformed_to_two(self):
-        ipython_session = self.ipy_session
-
         input_text = "{var1} sat on {{ sittingObject }}."
         escaped_text = "{var1} sat on {{{{ sittingObject }}}}."
-        ipython_session.run_cell(raw_cell='var1 = "The cat"')
+        user_ns = {"var1": "The cat"}
 
-        formatter = VvpFormatter(input_text)
+        formatter = VvpFormatter(input_text, user_ns)
         formatted = formatter._substitute_variables(escaped_text)
 
         assert formatted == "The cat sat on {{ sittingObject }}."

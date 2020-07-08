@@ -5,8 +5,9 @@ from IPython import get_ipython
 
 class VvpFormatter(string.Formatter):
 
-    def __init__(self, input_string):
+    def __init__(self, input_string, user_ns):
         self.input_string = input_string
+        self.user_ns = user_ns
 
     def substitute_user_variables(self):
         escaped_string = self._prepare_escaped_variables(self.input_string)
@@ -18,8 +19,7 @@ class VvpFormatter(string.Formatter):
 
     def _substitute_variables(self, escaped_string):
         try:
-            session = get_ipython()
-            return escaped_string.format(**session.user_ns)
+            return escaped_string.format(**self.user_ns)
         except KeyError as error:
             raise VariableSubstitutionException(error,
                                                 message="The variable {} is not defined but is referenced in the cell."

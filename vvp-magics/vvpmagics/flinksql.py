@@ -44,7 +44,7 @@ def is_supported_in(responses, response):
 
 
 def run_query(session, raw_cell, shell, args):
-    cell = VvpFormatter(raw_cell).substitute_user_variables()
+    cell = VvpFormatter(raw_cell, shell.user_ns).substitute_user_variables()
     validation_response = _validate_sql(cell, session)
     if validation_response.status_code != 200:
         raise FlinkSqlRequestException("Bad HTTP request, return code {}".format(validation_response.status_code),
