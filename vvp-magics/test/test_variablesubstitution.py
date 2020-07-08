@@ -1,5 +1,6 @@
 import unittest
 
+from IPython.testing import globalipapp
 from IPython.testing.globalipapp import get_ipython
 
 from vvpmagics.variablesubstitution import VvpFormatter, VariableSubstitutionException
@@ -11,6 +12,7 @@ class VariableSubstitutionTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
+        delattr(globalipapp.start_ipython,'already_called')
         cls.ipython_session = get_ipython()
 
     def setUp(self):

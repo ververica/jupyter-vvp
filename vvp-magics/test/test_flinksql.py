@@ -1,12 +1,12 @@
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 
 import requests_mock
-from IPython.testing.globalipapp import get_ipython
 
 from test.testmocks import ArgsMock, ShellMock
 from vvpmagics.deployments import Deployments
 from vvpmagics.flinksql import run_query, SqlSyntaxException, FlinkSqlRequestException
+from vvpmagics.variablesubstitution import VvpFormatter
 from vvpmagics.vvpsession import VvpSession
 
 
@@ -38,7 +38,7 @@ class FlinkSqlTests(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.ipython_session = get_ipython()
+        pass
 
     def setUp(self):
         VvpSession._sessions = {}
@@ -68,6 +68,7 @@ class FlinkSqlTests(unittest.TestCase):
 
         cell = """FAKE SQL COMMAND"""
 
+        VvpFormatter.substitute_user_variables = MagicMock(return_value=cell)
         response = run_query(self.session, cell, None, None)
         assert response.iloc[0]['table name'] == 'testTable'
 
@@ -85,6 +86,7 @@ class FlinkSqlTests(unittest.TestCase):
 
         cell = """FAKE SQL COMMAND"""
 
+        VvpFormatter.substitute_user_variables = MagicMock(return_value=cell)
         response = run_query(self.session, cell, None, None)
         assert response.iloc[0]['table name'] == 'testTable'
 
@@ -104,6 +106,7 @@ class FlinkSqlTests(unittest.TestCase):
         cell = """SOME VALID DML QUERY"""
 
         with patch.object(Deployments, 'make_deployment', return_value=deployment_id) as mock_make_deployment:
+            VvpFormatter.substitute_user_variables = MagicMock(return_value=cell)
             response = run_query(self.session, cell, shell, args)
         assert response == deployment_id
         mock_make_deployment.assert_called_once_with(cell, self.session, shell, args)
@@ -124,6 +127,7 @@ class FlinkSqlTests(unittest.TestCase):
         cell = """SOME VALID DML QUERY"""
 
         with patch.object(Deployments, 'make_deployment', return_value=deployment_id) as mock_make_deployment:
+            VvpFormatter.substitute_user_variables = MagicMock(return_value=cell)
             response = run_query(self.session, cell, shell, args)
         assert response == deployment_id
         mock_make_deployment.assert_called_once_with(cell, self.session, shell, args)
@@ -140,6 +144,7 @@ class FlinkSqlTests(unittest.TestCase):
         cell = """BAD SQL COMMAND"""
 
         with self.assertRaises(SqlSyntaxException) as raised:
+            VvpFormatter.substitute_user_variables = MagicMock(return_value=cell)
             run_query(self.session, cell, None, None)
             assert raised.exception.sql == cell
 
@@ -152,6 +157,7 @@ class FlinkSqlTests(unittest.TestCase):
         cell = """SOME SQL COMMAND"""
 
         with self.assertRaises(FlinkSqlRequestException) as raised_exception:
+            VvpFormatter.substitute_user_variables = MagicMock(return_value=cell)
             run_query(self.session, cell, None, None)
 
         assert raised_exception.exception.sql == cell
@@ -167,6 +173,7 @@ class FlinkSqlTests(unittest.TestCase):
         cell = """SOME SQL COMMAND"""
 
         with self.assertRaises(FlinkSqlRequestException) as raised_exception:
+            VvpFormatter.substitute_user_variables = MagicMock(return_value=cell)
             run_query(self.session, cell, None, None)
             assert raised_exception.exception.sql == cell
 
