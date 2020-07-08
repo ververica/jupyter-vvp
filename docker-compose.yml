@@ -51,7 +51,7 @@ services:
     - '8080:8080'
     restart: unless-stopped
   vvp-jupyter:
-    image: vvp-jupyter:latest
+    image: ${JUPYTER_IMAGE:-eu.gcr.io/vvp-devel-240810/vvp-jupyter:latest}
     ports:
       - '8888:8888'
   keycloak-mariadb:

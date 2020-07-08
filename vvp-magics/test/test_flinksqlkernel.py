@@ -104,6 +104,19 @@ class FlinkSqlTests(unittest.TestCase):
         response = _do_flink_completion(cell, 38)
         assert response is None
 
+    def test_deal_with_errors(self, requests_mock):
+        self._setUpSession(requests_mock)
+        requests_mock.request(method='post',
+                              url='http://localhost:8080{}'.format(sql_complete_endpoint(self.namespace)),
+                              text=""" {
+                                          "error": "Does not compute"
+                                        } """)
+
+        cell = """%%flink_sql\nSHOW TAB"""
+
+        response = _do_flink_completion(cell, 38)
+        assert response is None
+
     def test_text_length_calculation(self, requests_mock):
         cell = """%%flink_sql\nSHOW TAB"""
         length = calculate_text_length(cell, 20)

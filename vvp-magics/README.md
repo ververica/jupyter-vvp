@@ -22,7 +22,10 @@ To install the kernel run `jupyter kernelspec install --user flinksqlkernel` aft
 
 ## Docker setup
 
-1. First build the vvpmagics sdist package as above.
+1. Build the vvp-magics package (same as above):
+```
+python3 setup.py sdist
+```
 2. Then create the Docker image:
 ```
 docker build . --tag vvp-jupyter:latest
@@ -190,8 +193,22 @@ Both the `%connect_vvp` and the `%%flink_sql` magics support the `-d/--debug` fl
 to show full error messages.
 In case of error results from the VVP it will display the full JSON response.  
 
+## Code completion
+
+When using the FlinkSql kernel, SQL queries in a `%%flink_sql` cell will be completed with suggestions from VVP.
+In order for code completion to work, a connect_vvp session needs to exist. 
+The default session will be used to communicate with VVP unless the another session is set for the `%%flink_sql` cell.
+If any problems occur in the communication with VVP, code completion will attempt to use the standard Jupyter completion.
+
+![Code Completion](completion.gif)
+
+
 ## Help
 ```
 %connect_vvp?
 ```
-will show help text.
+and
+```
+%%flink_sql?
+```
+will show help texts for the magics.
