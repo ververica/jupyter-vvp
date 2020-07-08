@@ -228,6 +228,8 @@ class Deployments:
             cls._cancel_deployment(deployment_id, session)
 
         def delete_deployment(b):
+            status_button.disabled = True
+            cancel_button.disabled = True
             cls._delete_deployment(deployment_id, session)
 
         status_button = widgets.Button(
