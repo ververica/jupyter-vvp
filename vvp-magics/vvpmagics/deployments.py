@@ -227,6 +227,7 @@ class Deployments:
                     clear_output(wait=True)
                     print("Couldn't get deployment state.")
                     delete_button.disabled = True
+                    start_button.disabled = True
                     cancel_button.disabled = True
                     return
                 clear_output(wait=True)
