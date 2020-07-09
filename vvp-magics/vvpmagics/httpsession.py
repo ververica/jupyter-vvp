@@ -22,8 +22,14 @@ class HttpSession:
     def get(self, path, request_headers=None):
         return self._send_request(path, 'get', request_headers)
 
+    def delete(self, path, request_headers=None):
+        return self._send_request(path, 'delete', request_headers)
+
     def post(self, path, data, request_headers=None):
         return self._send_request(path, 'post', request_headers, data)
+
+    def patch(self, path, data, request_headers=None):
+        return self._send_request(path, 'patch', request_headers, data)
 
     def _send_request(self, path, method, request_headers, data=None):
         url = self._base_url + path

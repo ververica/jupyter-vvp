@@ -181,50 +181,138 @@ class Deployments:
         return state
 
     @classmethod
+    def _cancel_deployment(cls, deployment_id, session):
+        body = {"spec": {"state": "CANCELLED"}}
+        url = "/api/v1/namespaces/{}/deployments/{}".format(session.get_namespace(), deployment_id)
+        return session.submit_patch_request(url, json.dumps(body))
+
+    @classmethod
+    def _start_deployment(cls, deployment_id, session):
+        body = {"spec": {"state": "RUNNING"}}
+        url = "/api/v1/namespaces/{}/deployments/{}".format(session.get_namespace(), deployment_id)
+        return session.submit_patch_request(url, json.dumps(body))
+
+    @classmethod
+    def _delete_deployment(cls, deployment_id, session):
+        url = "/api/v1/namespaces/{}/deployments/{}".format(session.get_namespace(), deployment_id)
+        return session.execute_delete_request(url)
+
+    @classmethod
     def _show_output(cls, deployment_id, session):
         status_output = widgets.Output()
         link_output = widgets.Output()
 
-        def get_button_style(state):
+        def get_status_button_style(state):
             for key in deployment_states.keys():
                 if state in deployment_states[key]:
                     return key
             return "info"
 
-        def update_button(b):
+        def update_status(b):
             with status_output:
-                button.disabled = True
+                status_button.disabled = True
                 clear_output(wait=True)
                 print("Getting status...")
                 try:
                     state = cls._get_deployment_state(deployment_id, session)
+                    if state == "CANCELLED":
+                        cancel_button.disabled = True
+                        start_button.disabled = False
+                        delete_button.disabled = False
+                    else:
+                        cancel_button.disabled = False
+                        delete_button.disabled = True
                 except DeploymentStateException as exception:
-                    button.disabled = False
-                    raise exception
+                    status_button.disabled = False
+                    clear_output(wait=True)
+                    print("Couldn't get deployment state.")
+                    delete_button.disabled = True
+                    cancel_button.disabled = True
+                    return
                 clear_output(wait=True)
                 print("Status: {}.".format(state))
-                button.button_style = get_button_style(state)
-                button.disabled = False
+                status_button.button_style = get_status_button_style(state)
+                status_button.disabled = False
 
-        button = widgets.Button(
+        def cancel_deployment(b):
+            response = cls._cancel_deployment(deployment_id, session)
+            if response.status_code != 200:
+                raise DeploymentStateException("Server did not indicate success cancelling deployment.")
+            else:
+                with status_output:
+                    clear_output(wait=True)
+                    print("Requested CANCEL.")
+
+        def start_deployment(b):
+            response = cls._start_deployment(deployment_id, session)
+            if response.status_code != 200:
+                raise DeploymentStateException("Server did not indicate success cancelling deployment.")
+            else:
+                with status_output:
+                    clear_output(wait=True)
+                    print("Requested START.")
+
+        def delete_deployment(b):
+            response = cls._delete_deployment(deployment_id, session)
+            if response.status_code == 200:
+                status_button.disabled = True
+                start_button.disabled = True
+                cancel_button.disabled = True
+                delete_button.disabled = True
+                with status_output:
+                    clear_output(wait=True)
+                    print("Deployment DELETED.")
+            else:
+                raise DeploymentStateException("Server did not indicate success deleting deployment.")
+
+        status_button = widgets.Button(
             description="Refresh",
             disabled=False,
-            button_style="info",  # 'success', 'info', 'warning', 'danger' or ''
+            # style can be 'success', 'info', 'warning', 'danger' or ''
+            button_style="info",
             tooltip='Click to refresh deployment status',
             icon='refresh'
         )
-        button.on_click(update_button)
+        status_button.on_click(update_status)
+
+        cancel_button = widgets.Button(
+            description="Cancel",
+            disabled=False,
+            button_style="warning",
+            tooltip='Cancel the deployment',
+            icon="times"
+        )
+        cancel_button.on_click(cancel_deployment)
+
+        start_button = widgets.Button(
+            description="Start",
+            disabled=True,
+            button_style="success",
+            tooltip='(Re)start the deployment',
+            icon="play"
+        )
+        start_button.on_click(start_deployment)
+
+        delete_button = widgets.Button(
+            description="Delete",
+            disabled=True,
+            button_style="danger",
+            tooltip='Delete the deployment (only when in cancelled state).',
+            icon="trash"
+        )
+        delete_button.on_click(delete_deployment)
 
         deployment_endpoint = vvp_deployment_detail_endpoint(session.get_namespace(), deployment_id)
         url = session.get_base_url() + deployment_endpoint
 
         with link_output:
             display(
-                HTML("""[<a href="{}" target="_blank">Click here to see the deployment in the platform.</a>]"""
+                HTML("""[<a href="{}" target="_blank">See the deployment in the platform.</a>]"""
                      .format(url)))
         with status_output:
-            print("Click button to update deployment status.")
-        display(widgets.HBox(children=(button, status_output, link_output)))
+            print("Status: click 'refresh'.")
+        display(widgets.HBox(children=(status_button, status_output, cancel_button, start_button, delete_button)))
+        display(link_output)
 
 
 class DeploymentException(Exception):

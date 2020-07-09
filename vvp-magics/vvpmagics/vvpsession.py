@@ -104,8 +104,20 @@ class VvpSession:
         )
         return request
 
+    def submit_patch_request(self, endpoint, requestbody):
+        request = self._http_session.patch(
+            path=endpoint,
+            request_headers={"Content-Type": "application/json"},
+            data=requestbody
+        )
+        return request
+
     def execute_get_request(self, endpoint):
         request = self._http_session.get(path=endpoint, request_headers={"Content-Type": "application/json"})
+        return request
+
+    def execute_delete_request(self, endpoint):
+        request = self._http_session.delete(path=endpoint)
         return request
 
     def get_base_url(self):
