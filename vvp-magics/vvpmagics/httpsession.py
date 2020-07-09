@@ -1,5 +1,7 @@
 import requests
 from requests import auth
+import urllib3
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class HttpSession:
@@ -9,6 +11,7 @@ class HttpSession:
         self._headers = headers
         self._auth = ApiKeyAuth(api_key) if api_key else None
         self._session = requests.Session()
+        self._session.verify = False
 
     def get_base_url(self):
         return self._base_url
