@@ -4,13 +4,20 @@ import string
 
 def _match_forwards(full_string, match, complimentary_regexp):
     start_pos = match.start()
-    return re.match(complimentary_regexp, full_string[start_pos:]).group()
+    cut_string = full_string[start_pos:]
+    full_match = re.match(complimentary_regexp, cut_string)
+    if full_match:
+        return full_match.group()
+    return cut_string
 
 
 def _match_backwards(full_string, match, complimentary_regexp):
     end_pos = match.end()
-    matching_text = re.match(complimentary_regexp, full_string[:end_pos + 1][::-1]).group()
-    return matching_text[::-1]
+    cut_string = full_string[:end_pos]
+    matching_text = re.match(complimentary_regexp, cut_string[::-1])
+    if matching_text:
+        return matching_text.group()[::-1]
+    return cut_string
 
 
 # each ambiguous regexp has a corresponding (closing expression, directed matcher) tuple

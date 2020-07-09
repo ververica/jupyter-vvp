@@ -82,10 +82,12 @@ class VariableSubstitutionTests(unittest.TestCase):
 
     def test_get_ambiguous_syntax_finds_missing_spaces(self):
         test_data = {
-            "{{myvar}}": "{{myvar}",
-            "{{myvar }}": "{{myvar }",
-            "{{ myvar}}": "{ myvar}}",
-            "{ {{ myvar}}": "{ myvar}}"
+            "{{myvar}}": "{{myvar}",  # missing space {
+            "{{myvar": "{{myvar",  # missing space; no closing brace match
+            "myvar}}": "myvar}}",  # missing space }
+            "{ { myvar}}": "{ myvar}}",  # only get up to next brace back
+            "{{ myvar}}": "{ myvar}}",  # same even if double braces
+            "{ {{ myvar}}": "{ myvar}}"  # matches missing spaces before nesting
         }
 
         for test_input in test_data.keys():
@@ -107,7 +109,7 @@ class VariableSubstitutionTests(unittest.TestCase):
     def test_get_ambiguous_syntax_finds_nesting(self):
         test_data = {
             "{ {myvar} }": "{ {myvar}",
-            "{{     {myvar } }}": "{     {myvar }"
+            "{{     {myvar } }}": "{     {myvar }"  # inside double braces not parsed, but nesting detected
         }
 
         for input_data in test_data.keys():
