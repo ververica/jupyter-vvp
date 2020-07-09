@@ -1,14 +1,35 @@
+import re
 import string
-from re import search
+
+
+def _match_forwards(full_string, match, complimentary_regexp):
+    start_pos = match.start()
+    return re.match(complimentary_regexp, full_string[start_pos:]).group()
+
+
+def _match_backwards(full_string, match, complimentary_regexp):
+    end_pos = match.end()
+    matching_text = re.match(complimentary_regexp, full_string[:end_pos + 1][::-1]).group()
+    return matching_text[::-1]
+
+
+# each ambiguous regexp has a corresponding (closing expression, directed matcher) tuple
+# for a reverse search the reverse regexp is also reversed
+ambiguous_regexps = {
+    "\{\{\S": ("[^\}]*\}", _match_forwards),  # any two left braces followed by a non-whitespace character
+    "\S\}\}": ("[^\{]*\{", _match_backwards),  # any non-whitespace character followed by two braces
+    "\{\s+\{": ("[^\}]*\}", _match_forwards),  # catch some attempted nesting cases
+    "\}\s+\}": ("[^\{]*\{", _match_backwards)  # catch some attempted nesting cases
+}
 
 
 class VvpFormatter(string.Formatter):
-    ambiguous_regexps = [
-        "\{\{\S",  # any two left braces followed by a non-whitespace character
-        "\S\}\}",  # any non-whitespace character followed by two braces
-        "\{\s+\{",  # catch some attempted nesting cases
-        "\}\s+\}"  # catch some attempted nesting cases
-    ]
+
+    @classmethod
+    def match_help_expression(cls, regexp, full_string, match):
+        complimentary_regexp = ambiguous_regexps[regexp][0]
+        match_function = ambiguous_regexps[regexp][1]
+        return match_function(full_string, match, complimentary_regexp)
 
     def __init__(self, input_string, user_ns):
         self.input_string = input_string
@@ -25,10 +46,10 @@ class VvpFormatter(string.Formatter):
 
     @classmethod
     def _get_ambiguous_syntax(cls, input_text):
-        for regexp in cls.ambiguous_regexps:
-            match = search(regexp, input_text)
+        for regexp in ambiguous_regexps.keys():
+            match = re.search(regexp, input_text)
             if match:
-                return match.group()
+                return cls.match_help_expression(regexp, input_text, match)
         return None
 
     @staticmethod
@@ -40,7 +61,7 @@ class VvpFormatter(string.Formatter):
         try:
             return escaped_string.format(**self.user_ns)
         except KeyError as error:
-            raise NonExistentVariableException(error,
+            raise NonExistentVariableException(error.args[0],
                                                message="The variable {} is not defined but is referenced in the cell."
                                                .format(error),
                                                sql=self.input_string)

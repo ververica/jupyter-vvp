@@ -27,7 +27,18 @@ class VariableSubstitutionTests(unittest.TestCase):
 
         with self.assertRaises(NonExistentVariableException) as exception:
             formatter.substitute_user_variables()
-            assert exception.variable_name == "var2"
+
+        assert exception.exception.variable_name == "var2"
+
+    def test_substitute_user_variables_ambiguous_throws(self):
+        input_text = "{var1} sat on {{var2}."
+        user_ns = {"var1": "The cat"}
+        formatter = VvpFormatter(input_text, user_ns)
+
+        with self.assertRaises(VariableSyntaxException) as exception:
+            formatter.substitute_user_variables()
+
+        assert exception.exception.bad_text == "{{var2}"
 
     def test_prepare_escaped_variables_works_in_simple_case(self):
         input_text = "{{ variable }} and {{ another }} with { ignore }"
@@ -42,7 +53,8 @@ class VariableSubstitutionTests(unittest.TestCase):
 
         with self.assertRaises(VariableSyntaxException) as exception:
             formatter.substitute_user_variables()
-            assert exception.bad_text == "{{b"
+
+        assert exception.exception.bad_text == "{{bad_because_no_spaces}"
 
     def test_substitute_variables_works_in_simple_case(self):
         input_text = "{var1} sat on {var2}."
@@ -70,15 +82,16 @@ class VariableSubstitutionTests(unittest.TestCase):
 
     def test_get_ambiguous_syntax_finds_missing_spaces(self):
         input_text = "{{myvar}}"
-        assert VvpFormatter._get_ambiguous_syntax(input_text) == "{{m"
+        assert VvpFormatter._get_ambiguous_syntax(input_text) == "{{myvar}"
 
         better_input_text = "{{ myvar}}"
-        assert VvpFormatter._get_ambiguous_syntax(better_input_text) == "r}}"
+        actual = VvpFormatter._get_ambiguous_syntax(better_input_text)
+        assert actual == "{ myvar}}"
 
     def test_get_ambiguous_syntax_finds_multiple_braces(self):
         input_text = "{{{ myvar }}}"
-        assert VvpFormatter._get_ambiguous_syntax(input_text) == "{{{"
+        assert VvpFormatter._get_ambiguous_syntax(input_text) == "{{{ myvar }"
 
     def test_get_ambiguous_syntax_finds_nesting(self):
         input_text = "{ {myvar} }"
-        assert VvpFormatter._get_ambiguous_syntax(input_text) == "{ {"
+        assert VvpFormatter._get_ambiguous_syntax(input_text) == "{ {myvar}"
