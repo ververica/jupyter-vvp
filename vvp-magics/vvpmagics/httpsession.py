@@ -6,12 +6,13 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class HttpSession:
 
-    def __init__(self, base_url, headers, api_key=None):
+    def __init__(self, base_url, headers, api_key=None, allow_self_signed_cert=False):
         self._base_url = base_url
         self._headers = headers
         self._auth = ApiKeyAuth(api_key) if api_key else None
         self._session = requests.Session()
-        self._session.verify = False
+        if allow_self_signed_cert:
+            self._session.verify = False
 
     def get_base_url(self):
         return self._base_url
