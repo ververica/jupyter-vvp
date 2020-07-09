@@ -13,15 +13,16 @@ class VvpSession:
     _sessions = {}
     default_session_name = None
 
-    def __init__(self, vvp_base_url: str, namespace: str, api_key: str = None):
+    def __init__(self, vvp_base_url: str, namespace: str, api_key: str = None, allow_self_signed_cert: bool = False):
         """
 
         :type namespace: string
         :type vvp_base_url: string
         :type api_key: string
+        :type allow_self_signed_cert: bool
         """
 
-        self._http_session = HttpSession(vvp_base_url, None, api_key)
+        self._http_session = HttpSession(vvp_base_url, None, api_key, allow_self_signed_cert)
 
         if not self._is_valid_namespace(namespace):
             raise SessionException("Invalid or empty namespace specified.")
@@ -39,8 +40,9 @@ class VvpSession:
             raise SessionException("The session name {} is invalid.".format(session_name))
 
     @classmethod
-    def create_session(cls, vvp_base_url, namespace, session_name, set_default=False, force=False, api_key=None):
-        session = cls(vvp_base_url, namespace, api_key)
+    def create_session(cls, vvp_base_url, namespace, session_name, set_default=False, force=False, api_key=None,
+                       allow_self_signed_cert=False):
+        session = cls(vvp_base_url, namespace, api_key, allow_self_signed_cert)
         cls._add_session_to_dict(session_name, session, force=force)
         if (cls.default_session_name is None) or set_default:
             cls.default_session_name = session_name

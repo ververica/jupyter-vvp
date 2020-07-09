@@ -50,6 +50,17 @@ class VvpMagicsTests(unittest.TestCase):
 
         assert response['namespaces']
 
+    def test_connect_vvp_calls_https_endpoint_if_specified(self, requests_mock):
+        namespaces_response = '{{ "namespaces": [{{ "name": "namespaces/{}" }}] }}'.format(self.namespace)
+        requests_mock.request(method='get', url='https://localhost:8080/namespaces/v1/namespaces',
+                              text=namespaces_response)
+        magic_line = "localhost -p 8080 -S"
+        magics = VvpMagics()
+
+        response = magics.connect_vvp(magic_line)
+
+        assert response['namespaces']
+
     def test_connect_vvp_creates_session_if_namespace_given(self, requests_mock):
         self.setUpMocks(requests_mock)
 

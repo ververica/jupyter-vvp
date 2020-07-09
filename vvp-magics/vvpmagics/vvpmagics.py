@@ -38,6 +38,10 @@ class VvpMagics(Magics):
     @magic_arguments()
     @argument('hostname', type=str, help='Hostname')
     @argument('-p', '--port', type=str, default="8080", help='Port')
+    @argument('-S', '--secure', type=bool, default=False, nargs="?", const=True,
+              help="Use HTTPS for communication with VVP. For self-signed certificates use --secure_self_signed instead")
+    @argument('--secure_self_signed', type=bool, default=False, nargs="?", const=True,
+              help="Use HTTPS for communication with VVP, ignore warnings for self-signed certificates")
     @argument('-n', '--namespace', type=str, help='Namespace. If empty, lists all namespaces.')
     @argument('-k', '--key', type=str, help='API Key as cleartext string.')
     @argument('-K', '--prompt_key', type=bool, default=False, nargs="?", const=True,
@@ -51,7 +55,10 @@ class VvpMagics(Magics):
         args = parse_argstring(self.connect_vvp, line)
         hostname = args.hostname
         port = args.port
-        vvp_base_url = "http://{}:{}".format(hostname, port)
+        protocol = "http"
+        if args.secure or args.secure_self_signed or False:
+            protocol = "https"
+        vvp_base_url = "{}://{}:{}".format(protocol, hostname, port)
         try:
             api_key = args.key
             if args.prompt_key:
@@ -63,7 +70,8 @@ class VvpMagics(Magics):
                     self.print_error("No session name given and none already exist.")
                 else:
                     return VvpSession.create_session(vvp_base_url, args.namespace, session_name,
-                                                     force=force_update, api_key=api_key)
+                                                     force=force_update, api_key=api_key,
+                                                     allow_self_signed_cert=args.secure_self_signed or False)
             else:
                 return VvpSession.get_namespaces(vvp_base_url, api_key=api_key)
         except Exception as exception:
