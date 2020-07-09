@@ -81,17 +81,34 @@ class VariableSubstitutionTests(unittest.TestCase):
         assert VvpFormatter._get_ambiguous_syntax(input_text) is None
 
     def test_get_ambiguous_syntax_finds_missing_spaces(self):
-        input_text = "{{myvar}}"
-        assert VvpFormatter._get_ambiguous_syntax(input_text) == "{{myvar}"
+        test_data = {
+            "{{myvar}}": "{{myvar}",
+            "{{myvar }}": "{{myvar }",
+            "{{ myvar}}": "{ myvar}}",
+            "{ {{ myvar}}": "{ myvar}}"
+        }
 
-        better_input_text = "{{ myvar}}"
-        actual = VvpFormatter._get_ambiguous_syntax(better_input_text)
-        assert actual == "{ myvar}}"
+        for test_input in test_data.keys():
+            assert VvpFormatter._get_ambiguous_syntax(test_input) == test_data[test_input]
+
+    def test_get_ambiguous_syntax_does_not_parse_inside_brackets(self):
+        test_data = {
+            "{{    myvar }}": None,
+            "{{ myvar myvar2 }}": None,
+        }
+
+        for test_input in test_data.keys():
+            assert VvpFormatter._get_ambiguous_syntax(test_input) == test_data[test_input]
 
     def test_get_ambiguous_syntax_finds_multiple_braces(self):
         input_text = "{{{ myvar }}}"
         assert VvpFormatter._get_ambiguous_syntax(input_text) == "{{{ myvar }"
 
     def test_get_ambiguous_syntax_finds_nesting(self):
-        input_text = "{ {myvar} }"
-        assert VvpFormatter._get_ambiguous_syntax(input_text) == "{ {myvar}"
+        test_data = {
+            "{ {myvar} }": "{ {myvar}",
+            "{{     {myvar } }}": "{     {myvar }"
+        }
+
+        for input_data in test_data.keys():
+            assert VvpFormatter._get_ambiguous_syntax(input_data) == test_data[input_data]
