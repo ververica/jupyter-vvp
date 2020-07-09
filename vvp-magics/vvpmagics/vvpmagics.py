@@ -39,7 +39,7 @@ class VvpMagics(Magics):
     @argument('hostname', type=str, help='Hostname')
     @argument('-p', '--port', type=str, default="8080", help='Port')
     @argument('-S', '--secure', type=bool, default=False, nargs="?", const=True,
-              help="Use HTTPS for communication with VVP. For self-signed certificates use --secure-self-signed instead")
+              help="Use HTTPS for communication with VVP. For self-signed certificates use --secure_self_signed instead")
     @argument('--secure_self_signed', type=bool, default=False, nargs="?", const=True,
               help="Use HTTPS for communication with VVP, ignore warnings for self-signed certificates")
     @argument('-n', '--namespace', type=str, help='Namespace. If empty, lists all namespaces.')

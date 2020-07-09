@@ -69,7 +69,9 @@ run
 This will connect and create a session with the name `mysession`.
 The VVP host in this example is `localhost` and the port is `8080`.
 The hostname should be the name under which VVP is accessible from the Jupyter server.
-To connect to VVP through HTTPS, use the `--ssl` (or `-S`) parameter.
+To connect to VVP through HTTPS, use the `--secure` (or `-S`) parameter.
+In case VVP uses a self-signed certificate, it is possible to deactivate certificate checking using 
+`--secure_self_signed` instead of `--secure`.
 If no session exists then this session will be set as the default.
 
 Session names are treated by the magics as strings.
