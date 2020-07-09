@@ -33,11 +33,6 @@ ambiguous_regexps = {
 class VvpFormatter(string.Formatter):
 
     @classmethod
-    def match_help_expression(cls, regexp, full_string, match):
-        complimentary_regexp = ambiguous_regexps[regexp][0]
-        match_function = ambiguous_regexps[regexp][1]
-        return match_function(full_string, match, complimentary_regexp)
-
     def __init__(self, input_string, user_ns):
         self.input_string = input_string
         self.user_ns = user_ns
@@ -56,8 +51,13 @@ class VvpFormatter(string.Formatter):
         for regexp in ambiguous_regexps.keys():
             match = re.search(regexp, input_text)
             if match:
-                return cls.match_help_expression(regexp, input_text, match)
+                return cls._match_help_expression(regexp, input_text, match)
         return None
+
+    def _match_help_expression(cls, regexp, full_string, match):
+        complimentary_regexp = ambiguous_regexps[regexp][0]
+        match_function = ambiguous_regexps[regexp][1]
+        return match_function(full_string, match, complimentary_regexp)
 
     @staticmethod
     def _prepare_escaped_variables(input_text):
