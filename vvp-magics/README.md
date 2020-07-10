@@ -83,8 +83,8 @@ is found and taken from the local user context.
 
 Session names can be listed by executing
 ```python
-from vvpmagics import VvpSession
-VvpSession.get_sessions()
+from vvpmagics import vvpsession
+vvpsession.VvpSession.get_sessions()
 ```
 
 ### Using API Keys
