@@ -1,8 +1,10 @@
 import unittest
+from unittest.mock import MagicMock
 
 import requests_mock
 
 from test.testmocks import ShellMock, ArgsMock
+from vvpmagics.deploymentoutput import DeploymentOutput
 from vvpmagics.deployments import NO_DEFAULT_DEPLOYMENT_MESSAGE, VvpConfigurationException, Deployments, \
     VvpParameterException, VVP_DEFAULT_PARAMETERS_VARIABLE, DeploymentException
 from vvpmagics.vvpsession import VvpSession
@@ -33,9 +35,18 @@ class DeploymentTests(unittest.TestCase):
     vvp_base_url = "http://localhost:8080"
     namespace = "test"
 
+    @classmethod
+    def setUpClass(cls):
+        cls.show_output = DeploymentOutput.show_output
+
     def setUp(self):
         VvpSession._sessions = {}
         VvpSession.default_session_name = None
+        DeploymentOutput.show_output = MagicMock()
+
+    @classmethod
+    def tearDownClass(cls):
+        DeploymentOutput.show_output = cls.show_output
 
     def _setUpSession(self, requests_mock):
         requests_mock.request(method='get', url='http://localhost:8080/api/v1/namespaces/{}/deployment-targets'
