@@ -23,3 +23,11 @@ first build the Docker file as described in the [Readme](vvp-magics/README.md), 
 ```shell
 docker-compose up vvp-gateway vvp-appmanager vvp-ui vvp-jupyter
 ```
+
+## Docker run setup
+
+A Jupyter instance with the notebook can also be run directly with
+
+```shell
+docker run -p 8888:8888 eu.gcr.io/vvp-devel-240810/vvp-jupyter:latest
+```
