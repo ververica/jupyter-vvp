@@ -1,7 +1,9 @@
 import json
+import threading
+import time
 
 from IPython.core.display import display, HTML, clear_output
-from ipywidgets import widgets
+from ipywidgets import widgets, Layout
 
 NO_DEFAULT_DEPLOYMENT_MESSAGE = "No default deployment target found."
 VVP_DEFAULT_PARAMETERS_VARIABLE = "vvp_default_parameters"
@@ -199,7 +201,8 @@ class Deployments:
 
     @classmethod
     def _show_output(cls, deployment_id, session):
-        status_output = widgets.Output()
+        status_output = widgets.Output(layout=Layout(width="30%"))
+        # status_output = widgets.Output()
         link_output = widgets.Output()
 
         def get_status_button_style(state):
@@ -208,11 +211,17 @@ class Deployments:
                     return key
             return "info"
 
-        def update_status(b):
+        def update_loop():
+            update_loop.do = True
+            while update_loop.do:
+                update_status()
+                time.sleep(2)
+
+        thread = threading.Thread(target=update_loop)
+
+        def update_status(b=None):
             with status_output:
-                status_button.disabled = True
                 clear_output(wait=True)
-                print("Getting status...")
                 try:
                     state = cls._get_deployment_state(deployment_id, session)
                     if state == "CANCELLED":
@@ -223,17 +232,15 @@ class Deployments:
                         cancel_button.disabled = False
                         delete_button.disabled = True
                 except DeploymentStateException as exception:
-                    status_button.disabled = False
                     clear_output(wait=True)
                     print("Couldn't get deployment state.")
                     delete_button.disabled = True
                     start_button.disabled = True
                     cancel_button.disabled = True
                     return
-                clear_output(wait=True)
-                print("Status: {}.".format(state))
+                clear_output()
                 status_button.button_style = get_status_button_style(state)
-                status_button.disabled = False
+                status_button.description = state
 
         def cancel_deployment(b):
             response = cls._cancel_deployment(deployment_id, session)
@@ -256,25 +263,24 @@ class Deployments:
         def delete_deployment(b):
             response = cls._delete_deployment(deployment_id, session)
             if response.status_code == 200:
-                status_button.disabled = True
                 start_button.disabled = True
                 cancel_button.disabled = True
                 delete_button.disabled = True
                 with status_output:
                     clear_output(wait=True)
                     print("Deployment DELETED.")
+                    update_loop.do = False
             else:
                 raise DeploymentStateException("Server did not indicate success deleting deployment.")
 
         status_button = widgets.Button(
-            description="Refresh",
-            disabled=False,
+            description="Transitioning",
+            disabled=True,
             # style can be 'success', 'info', 'warning', 'danger' or ''
             button_style="info",
-            tooltip='Click to refresh deployment status',
+            tooltip='Shows deployment state',
             icon='refresh'
         )
-        status_button.on_click(update_status)
 
         cancel_button = widgets.Button(
             description="Cancel",
@@ -311,9 +317,11 @@ class Deployments:
                 HTML("""[<a href="{}" target="_blank">See the deployment in the platform.</a>]"""
                      .format(url)))
         with status_output:
-            print("Status: click 'refresh'.")
+            print("Status: will refresh.")
         display(widgets.HBox(children=(status_button, status_output, cancel_button, start_button, delete_button)))
         display(link_output)
+
+        thread.start()
 
 
 class DeploymentException(Exception):
