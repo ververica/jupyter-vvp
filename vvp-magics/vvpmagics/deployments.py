@@ -1,39 +1,10 @@
 import json
 
-from IPython.core.display import display, HTML, clear_output
-from ipywidgets import widgets
+from vvpmagics.deploymentapiconstants import sql_deployment_create_endpoint, deployment_defaults_endpoint
+from vvpmagics.deploymentoutput import DeploymentOutput
 
 NO_DEFAULT_DEPLOYMENT_MESSAGE = "No default deployment target found."
 VVP_DEFAULT_PARAMETERS_VARIABLE = "vvp_default_parameters"
-
-
-def deployment_defaults_endpoint(namespace):
-    return "/api/v1/namespaces/{}/deployment-defaults".format(namespace)
-
-
-def sql_deployment_create_endpoint(namespace):
-    return "/api/v1/namespaces/{}/deployments".format(namespace)
-
-
-def sql_deployment_endpoint(namespace, deployment_id):
-    return "/api/v1/namespaces/{}/deployments/{}".format(namespace, deployment_id)
-
-
-def vvp_deployment_detail_endpoint(namespace, deployment_id):
-    return "/app/#/namespaces/{}/deployments/{}/detail/overview".format(namespace, deployment_id)
-
-
-deployment_states = {
-    "warning": ["CANCELLED", "SUSPENDED"],
-    "success": ["RUNNING", "FINISHED"],
-    "info": ["TRANSITIONING"],
-    "danger": ["FAILED"]
-}
-
-
-def all_deployment_states():
-    return [state for states in deployment_states.values() for state in states]
-
 
 REQUIRED_DEFAULT_PARAMETERS = {
     "metadata.annotations.license/testing": False
@@ -57,7 +28,7 @@ class Deployments:
         deployment_creation_response = session.submit_post_request(endpoint=endpoint, requestbody=json.dumps(body))
         if deployment_creation_response.status_code == 201:
             deployment_id = json.loads(deployment_creation_response.text)['metadata']['id']
-            cls._show_output(deployment_id, session)
+            DeploymentOutput(deployment_id, session).show_output()
             return deployment_id
         return cls.handle_deployment_error(deployment_creation_response)
 
@@ -157,11 +128,6 @@ class Deployments:
                                             ": you may be trying to set a sub-key value on an already set scalar. ")
 
     @staticmethod
-    def _get_deployment_data(deployment_id, session):
-        deployment_endpoint = sql_deployment_endpoint(session.get_namespace(), deployment_id)
-        return json.loads(session.execute_get_request(deployment_endpoint).text)
-
-    @staticmethod
     def get_deployment_parameters(shell, args):
         if shell is None:
             return None
@@ -170,150 +136,6 @@ class Deployments:
         if args.parameters is not None:
             parameters_variable = args.parameters
         return shell.user_ns.get(parameters_variable, None)
-
-    @classmethod
-    def _get_deployment_state(cls, deployment_id, session):
-        data = cls._get_deployment_data(deployment_id, session)
-        state = data.get("status", {}).get("state")
-        if (not state) or state not in all_deployment_states():
-            raise DeploymentStateException("Could not obtain valid deployment state for deployment {}."
-                                           .format(deployment_id))
-        return state
-
-    @classmethod
-    def _cancel_deployment(cls, deployment_id, session):
-        body = {"spec": {"state": "CANCELLED"}}
-        url = "/api/v1/namespaces/{}/deployments/{}".format(session.get_namespace(), deployment_id)
-        return session.submit_patch_request(url, json.dumps(body))
-
-    @classmethod
-    def _start_deployment(cls, deployment_id, session):
-        body = {"spec": {"state": "RUNNING"}}
-        url = "/api/v1/namespaces/{}/deployments/{}".format(session.get_namespace(), deployment_id)
-        return session.submit_patch_request(url, json.dumps(body))
-
-    @classmethod
-    def _delete_deployment(cls, deployment_id, session):
-        url = "/api/v1/namespaces/{}/deployments/{}".format(session.get_namespace(), deployment_id)
-        return session.execute_delete_request(url)
-
-    @classmethod
-    def _show_output(cls, deployment_id, session):
-        status_output = widgets.Output()
-        link_output = widgets.Output()
-
-        def get_status_button_style(state):
-            for key in deployment_states.keys():
-                if state in deployment_states[key]:
-                    return key
-            return "info"
-
-        def update_status(b):
-            with status_output:
-                status_button.disabled = True
-                clear_output(wait=True)
-                print("Getting status...")
-                try:
-                    state = cls._get_deployment_state(deployment_id, session)
-                    if state == "CANCELLED":
-                        cancel_button.disabled = True
-                        start_button.disabled = False
-                        delete_button.disabled = False
-                    else:
-                        cancel_button.disabled = False
-                        delete_button.disabled = True
-                except DeploymentStateException as exception:
-                    status_button.disabled = False
-                    clear_output(wait=True)
-                    print("Couldn't get deployment state.")
-                    delete_button.disabled = True
-                    start_button.disabled = True
-                    cancel_button.disabled = True
-                    return
-                clear_output(wait=True)
-                print("Status: {}.".format(state))
-                status_button.button_style = get_status_button_style(state)
-                status_button.disabled = False
-
-        def cancel_deployment(b):
-            response = cls._cancel_deployment(deployment_id, session)
-            if response.status_code != 200:
-                raise DeploymentStateException("Server did not indicate success cancelling deployment.")
-            else:
-                with status_output:
-                    clear_output(wait=True)
-                    print("Requested CANCEL.")
-
-        def start_deployment(b):
-            response = cls._start_deployment(deployment_id, session)
-            if response.status_code != 200:
-                raise DeploymentStateException("Server did not indicate success cancelling deployment.")
-            else:
-                with status_output:
-                    clear_output(wait=True)
-                    print("Requested START.")
-
-        def delete_deployment(b):
-            response = cls._delete_deployment(deployment_id, session)
-            if response.status_code == 200:
-                status_button.disabled = True
-                start_button.disabled = True
-                cancel_button.disabled = True
-                delete_button.disabled = True
-                with status_output:
-                    clear_output(wait=True)
-                    print("Deployment DELETED.")
-            else:
-                raise DeploymentStateException("Server did not indicate success deleting deployment.")
-
-        status_button = widgets.Button(
-            description="Refresh",
-            disabled=False,
-            # style can be 'success', 'info', 'warning', 'danger' or ''
-            button_style="info",
-            tooltip='Click to refresh deployment status',
-            icon='refresh'
-        )
-        status_button.on_click(update_status)
-
-        cancel_button = widgets.Button(
-            description="Cancel",
-            disabled=False,
-            button_style="warning",
-            tooltip='Cancel the deployment',
-            icon="times"
-        )
-        cancel_button.on_click(cancel_deployment)
-
-        start_button = widgets.Button(
-            description="Start",
-            disabled=True,
-            button_style="success",
-            tooltip='(Re)start the deployment',
-            icon="play"
-        )
-        start_button.on_click(start_deployment)
-
-        delete_button = widgets.Button(
-            description="Delete",
-            disabled=True,
-            button_style="danger",
-            tooltip='Delete the deployment (only when in cancelled state).',
-            icon="trash"
-        )
-        delete_button.on_click(delete_deployment)
-
-        deployment_endpoint = vvp_deployment_detail_endpoint(session.get_namespace(), deployment_id)
-        url = session.get_base_url() + deployment_endpoint
-
-        with link_output:
-            display(
-                HTML("""[<a href="{}" target="_blank">See the deployment in the platform.</a>]"""
-                     .format(url)))
-        with status_output:
-            print("Status: click 'refresh'.")
-        display(widgets.HBox(children=(status_button, status_output, cancel_button, start_button, delete_button)))
-        display(link_output)
 
 
 class DeploymentException(Exception):
@@ -334,10 +156,4 @@ class VvpParameterException(Exception):
 
     def __init__(self, message="", sql=None):
         super(VvpParameterException, self).__init__(message)
-        self.sql = sql
-
-
-class DeploymentStateException(Exception):
-    def __init__(self, message="", sql=None):
-        super(DeploymentStateException, self).__init__(message)
         self.sql = sql
