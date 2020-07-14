@@ -10,7 +10,7 @@ from IPython.testing.globalipapp import get_ipython
 from vvpmagics import VvpMagics
 from vvpmagics.vvpsession import VvpSession
 
-has_running_vvp_instance = os.environ.get('VVP_LOCAL_RUNNING', False)
+travis = os.environ.get('TRAVIS', False)
 
 
 def random_string():
@@ -29,10 +29,10 @@ class VvpMagicsTestsAgainstBackend(unittest.TestCase):
         VvpSession._sessions = {}
         VvpSession.default_session_name = None
 
-    @unittest.skipIf(not has_running_vvp_instance, 'Requires running VVP backend.')
+    @unittest.skipIf(travis, 'Requires locally running VVP backend.')
     def test_flink_sql_executes_show_tables(self):
         magics = VvpMagics()
-        connect_magic_line = "localhost -n default -s session1"
+        connect_magic_line = "localhost -n default -p 8280 -s session1"
         magics.connect_vvp(connect_magic_line)
 
         sql_magic_line = ""
@@ -41,10 +41,10 @@ class VvpMagicsTestsAgainstBackend(unittest.TestCase):
         response = magics.flink_sql(sql_magic_line, sql_magic_cell)
         assert "table name" in response.columns
 
-    @unittest.skipIf(not has_running_vvp_instance, 'Requires running VVP backend.')
+    @unittest.skipIf(travis, 'Requires locally running VVP backend.')
     def test_flink_sql_executes_create_table(self):
         magics = VvpMagics()
-        connect_magic_line = "localhost -n default -s session1"
+        connect_magic_line = "localhost -n default -p 8280 -s session1"
         magics.connect_vvp(connect_magic_line)
 
         table_name = "testTable{}".format(random_string())
@@ -64,10 +64,10 @@ WITH (
         response = magics.flink_sql(sql_magic_line, sql_magic_cell)
         assert response['result'] == 'RESULT_SUCCESS'
 
-    @unittest.skipIf(not has_running_vvp_instance, 'Requires running VVP backend.')
+    @unittest.skipIf(travis, 'Requires locally running VVP backend.')
     def test_flink_sql_executes_insert(self):
         magics = VvpMagics()
-        connect_magic_line = "localhost -n default -s session1"
+        connect_magic_line = "localhost -n default -p 8280 -s session1"
         magics.connect_vvp(connect_magic_line)
 
         table_names = ["testTable{}{}".format(i, random_string()) for i in [1, 2]]

@@ -61,6 +61,7 @@ class DeploymentOutput:
                 time.sleep(2)
 
         thread = threading.Thread(target=update_loop)
+        thread.daemon = True
 
         def update_status(b=None):
             with status_output:
