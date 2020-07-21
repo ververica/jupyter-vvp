@@ -68,7 +68,7 @@ def run_query(session, raw_cell, shell, args):
 
 def _validate_sql(cell, session):
     validate_endpoint = sql_validate_endpoint(session.get_namespace())
-    body = json.dumps({"script": cell})
+    body = json.dumps({"statement": cell})
     validation_response = session.submit_post_request(validate_endpoint, body)
     return validation_response
 
