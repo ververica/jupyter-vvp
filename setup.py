@@ -10,7 +10,7 @@ URL          = 'https://github.com/dataArtisans/vvp-jupyter'
 DOWNLOAD_URL = 'https://github.com/dataArtisans/vvp-jupyter'
 LICENSE      = 'Apache License 2.0'
 
-with open("README.md", "r") as fh:
+with open("../README.md", "r") as fh:
     long_description = fh.read()
 
 setup(name=NAME,
