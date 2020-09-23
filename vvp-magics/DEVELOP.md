@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.com/dataArtisans/vvp-jupyter.svg?token=RGozj1rgTPauwuugxzZx&branch=master)](https://travis-ci.com/dataArtisans/vvp-jupyter)
 
-Experimental support for vvp using IPython Magics commands.
+Jupyter support for Ververica Platform using IPython Magics commands.
 
 ## Packaging
 

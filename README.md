@@ -2,7 +2,16 @@
 
 [![Build Status](https://travis-ci.com/dataArtisans/vvp-jupyter.svg?token=RGozj1rgTPauwuugxzZx&branch=master)](https://travis-ci.com/dataArtisans/vvp-jupyter)
 
-Experimental support for vvp using IPython Magics commands.
+Jupyter support for the Ververica Platform.
+This package contains magics to interact with a Ververica Platform installation, in particular to connect
+to a Ververica Platform instance and run SQL commands.
+Furthermore there is a custom kernel that provides SQL code completion inside the sql magics.
+
+## Prerequisites
+
+In order to use the Jupyter magics, you will require access to an installation of the Ververica Platform.
+
+To set up Ververica Platform follow the instructions at https://docs.ververica.com/getting_started/index.html
 
 ## Usage
 
@@ -83,17 +92,18 @@ Example:
    ...: COMMENT '' 
    ...: WITH ( 
    ...:   -- Kafka connector configuration. See documentation for all configuration options. 
-   ...:     'connector.type' = 'kafka', 
-   ...:     'connector.version' = 'universal', 
-   ...:     'connector.topic' = 'testTopic', 
-   ...:     'connector.properties.bootstrap.servers' = 'localhost:9092', 
-   ...:     'connector.properties.group.id' = '...', 
-   ...:     'connector.startup-mode' = 'earliest-offset' 
+   ...:     'connector' = 'kafka', 
+   ...:     'topic' = 'testTopic', 
+   ...:     'properties.bootstrap.servers' = 'localhost:9092', 
+   ...:     'properties.group.id' = '...', 
+   ...:     'scan.startup.mode' = 'earliest-offset',
+   ...:     'format' = 'csv'
    ...: ) 
 
 ```
 
-This will return the HTTP response body from the back end.
+This will return the HTTP response body from the back end. 
+The format is referenced in the [Ververica Platform documentation](https://docs.ververica.com/sql-eap/sql_development/table_view.html#apache-kafka)
 If there is a `resultsTable` object then this will be returned as a Pandas Dataframe.
 
 A session can be specified via:
@@ -136,7 +146,8 @@ The scope is the `user_ns` dictionary,
 accessed by Python via the IPython shell object.
 
 Take care to avoid nesting braced expressions,
-but note that double-brace placeholders may also be used (see below).
+but note that double-brace placeholders may also be used (double-braced placeholders are used in the Flink configuration, 
+for more information see the Flink configuration section below).
 
 
 ## Setting deployment parameters
@@ -145,6 +156,8 @@ The possible settings keys are listed in a parameters dictionary in the example 
 and its use is shown there.
 To use these parameters, the switch `-p [parameters-variable-name]` is used in the `flink_sql` Magic.
 If no switch is specified, the default variable `vvp_default_parameters` is used.
+
+For reference see the [Ververica Platform documentation](https://docs.ververica.com/sql-eap/application_operations/deployments/deployment_templates.html)
 
 ### Possible deployment setting values
 Users may find the following documentation generally useful:
@@ -223,6 +236,3 @@ will show help texts for the magics.
 
 Report an issue at https://github.com/dataArtisans/vvp-jupyter/issues
 
-## VVP
-
-To set up VVP follow the instructions at https://docs.ververica.com/getting_started/index.html
