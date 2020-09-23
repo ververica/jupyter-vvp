@@ -25,9 +25,9 @@ to load the extension and register the magics.
 
 ## Sessions
 
-A *session* corresponds to a connection to a VVP instance,
+A *session* corresponds to a connection to a Ververica Platform instance,
 specifying its hostname and port,
-and an API key if required.
+and an API token if required.
 The session has a name for convenient reference.
 
 From within IPython (`ipython3`) or an IPython3 kernel in a Jupyter instance,
@@ -36,10 +36,10 @@ run
 %connect_vvp localhost -p 8080 -n default -s mysession
 ```
 This will connect and create a session with the name `mysession`.
-The VVP host in this example is `localhost` and the port is `8080`.
-The hostname should be the name under which VVP is accessible from the Jupyter server.
-To connect to VVP through HTTPS, use the `--secure` (or `-S`) parameter.
-In case VVP uses a self-signed certificate, it is possible to deactivate certificate checking using 
+The Ververica Platform host in this example is `localhost` and the port is `8080`.
+The hostname should be the name under which Ververica Platform is accessible from the Jupyter server.
+To connect to Ververica Platform through HTTPS, use the `--secure` (or `-S`) parameter.
+In case Ververica Platform uses a self-signed certificate, it is possible to deactivate certificate checking using 
 `--secure_self_signed` instead of `--secure`.
 If no session exists then this session will be set as the default.
 
@@ -53,7 +53,7 @@ from vvpmagics import vvpsession
 vvpsession.VvpSession.get_sessions()
 ```
 
-### Using API Keys
+### Using API Tokens
 
 - The argument `-k <API-Key>` (or `--key <API-Key>`) 
   will use the given value in `<API-Key>` as the API Key.
@@ -70,7 +70,7 @@ If no keys are specified, no API keys are used.
 %connect_vvp HOSTNAME -n default -s mySession -K
 ```
 
-## SQL requests
+## SQL Requests
 Example:
 ```
 %%flink_sql 
@@ -96,7 +96,7 @@ Example:
 This will return the HTTP response body from the back end.
 If there is a `resultsTable` object then this will be returned as a Pandas Dataframe.
 
-A session can be specified in the first line thus:
+A session can be specified via:
 
 ```
 %%flinksql mySession
@@ -161,7 +161,7 @@ Some relevant examples include:
 |`spec.restoreStrategy`                 | String: `"LATEST_STATE"`, `"LATEST_SAVEPOINT"`, or `"NONE"`.  | | [Link](https://docs.ververica.com/user_guide/lifecycle_management/index.html#restore-strategy) |
 |`spec.upgradeStrategy`                 | String: `"STATELESS"`, `"STATEFUL"`, or `"NONE"`.             | | [Link](https://docs.ververica.com/user_guide/lifecycle_management/index.html#upgrade-strategy) |
 
-### Flink settings
+### Flink Configuration
 In the deployment settings,
 keys of the form 
 ```
