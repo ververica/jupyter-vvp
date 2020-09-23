@@ -8,7 +8,7 @@ AUTHOR = "Ververica"
 AUTHOR_EMAIL = "platform@ververica.com"
 URL = 'https://github.com/dataArtisans/vvp-jupyter'
 DOWNLOAD_URL = 'https://github.com/dataArtisans/vvp-jupyter'
-LICENSE = 'MIT'
+LICENSE = 'Apache License 2.0'
 
 
 with open("README.md", "r") as fh:
