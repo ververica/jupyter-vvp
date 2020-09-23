@@ -7,6 +7,6 @@ set -o xtrace
 
 cd "$(dirname "$0")"
 
-pip install twine
-twine check dist/*
-twine upload dist/*
+pip3 install -r requirements.txt
+twine check ../dist/*
+twine upload ../dist/*
