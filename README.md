@@ -3,9 +3,9 @@
 [![Build Status](https://travis-ci.com/dataArtisans/vvp-jupyter.svg?token=RGozj1rgTPauwuugxzZx&branch=master)](https://travis-ci.com/dataArtisans/vvp-jupyter)
 
 Jupyter support for the Ververica Platform.
-This package contains magics to interact with a Ververica Platform installation, in particular to connect
-to a Ververica Platform instance and run SQL commands.
-Furthermore there is a custom kernel that provides SQL code completion inside the sql magics.
+This package contains magics to interact with a Ververica Platform installation, 
+in particular to connect to a Ververica Platform instance and run SQL commands.
+Furthermore, there is a custom kernel that provides SQL code completion inside the sql magics.
 
 ## Prerequisites
 
@@ -13,24 +13,57 @@ In order to use the Jupyter magics, you will require access to an installation o
 
 To set up Ververica Platform follow the instructions at https://docs.ververica.com/getting_started/index.html
 
-## Usage
+## Installation
 
 The package can be installed from PyPi with 
 ```
 pip3 install jupyter-vvp
 ```
 
-The package also contains a custom kernel that extends the IPython kernel to provide SQL code completion.
-To install the kernel run `jupyter kernelspec install --user flinksqlkernel` after building the package.
-
 ## Loading the extension
 
-From within IPython (`ipython3`) or an IPython3 kernel in a local Jupyter instance,
+From within IPython (`ipython3`) or an IPython3 kernel in any local Jupyter instance,
 run
 ```
 %load_ext vvpmagics
 ```
 to load the extension and register the magics.
+
+## Usage
+
+In order to use the VVP Jupyter magics, you will first need to connect to a VVP instance.
+The `%connect_vvp` magic can be used for that:
+```
+%connect_vvp localhost --port 8080 --namespace default
+```
+
+This will set up your notebook to communicate with the Ververica Platform.
+We can test this by trying a DDL statement, e.g. to display all existing tables:
+```
+%%flink_sql
+SHOW TABLES
+```
+
+The `flink_sql` magic can of course also be used to send DML queries to the Ververica Platform:
+```
+%%flink_sql
+CREATE TABLE Orders (
+     order_id   BIGINT,
+     order_time TIMESTAMP(3),
+     price      DECIMAL(32, 2),
+     quantity   INT
+ ) WITH (
+     'connector' = 'kafka',
+     'topic' = 'orders',
+     'properties.bootstrap.servers' = 'localhost:9092',
+     'properties.group.id' = 'orderGroup',
+     'format' = 'csv'
+ )
+```
+
+## Examples
+
+A few example notebook can be found in the [example_notebooks folder](./example_notebooks)
 
 ## Sessions
 
@@ -83,27 +116,22 @@ If no keys are specified, no API keys are used.
 Example:
 ```
 %%flink_sql 
-   ...: CREATE TABLE `testTable2` ( 
-   ...:   id bigint 
-   ...:   -- Watermark definition, here for a timestamp column 'ts' 
-   ...:   -- WATERMARK FOR ts AS ts - INTERVAL '1' MINUTE 
-   ...: ) 
-   ...: -- Free text comment 
-   ...: COMMENT '' 
-   ...: WITH ( 
-   ...:   -- Kafka connector configuration. See documentation for all configuration options. 
-   ...:     'connector' = 'kafka', 
-   ...:     'topic' = 'testTopic', 
-   ...:     'properties.bootstrap.servers' = 'localhost:9092', 
-   ...:     'properties.group.id' = '...', 
-   ...:     'scan.startup.mode' = 'earliest-offset',
-   ...:     'format' = 'csv'
-   ...: ) 
-
+   ...:  CREATE TABLE Orders (
+   ...:       order_id   BIGINT,
+   ...:       order_time TIMESTAMP(3),
+   ...:       price      DECIMAL(32, 2),
+   ...:       quantity   INT
+   ...:   ) WITH (
+   ...:       'connector' = 'kafka',
+   ...:       'topic' = 'orders',
+   ...:       'properties.bootstrap.servers' = 'localhost:9092',
+   ...:       'properties.group.id' = 'orderGroup',
+   ...:       'format' = 'csv'
+   ...:   )
 ```
 
 This will return the HTTP response body from the back end. 
-The format is referenced in the [Ververica Platform documentation](https://docs.ververica.com/sql-eap/sql_development/table_view.html#apache-kafka)
+For more information about using Ververica Platform SQL refer to the [Ververica Platform documentation](https://docs.ververica.com/sql-eap/sql_development/index.html)
 If there is a `resultsTable` object then this will be returned as a Pandas Dataframe.
 
 A session can be specified via:
@@ -157,14 +185,13 @@ and its use is shown there.
 To use these parameters, the switch `-p [parameters-variable-name]` is used in the `flink_sql` Magic.
 If no switch is specified, the default variable `vvp_default_parameters` is used.
 
-For reference see the [Ververica Platform documentation](https://docs.ververica.com/sql-eap/application_operations/deployments/deployment_templates.html)
-
-### Possible deployment setting values
-Users may find the following documentation generally useful:
+You may find the following documentation generally useful:
 - [Deployment Template settings](https://docs.ververica.com/user_guide/deployments/deployment_templates.html)
 - [Lifecycle Management settings](https://docs.ververica.com/user_guide/lifecycle_management/index.html)
 
-Some relevant examples include:
+### Important parameters
+
+Please find some frequently used parameters below:
 
 | Setting                               | Possible values                                               | Comment         | Documentation      |
 |---------------------------------------|---------------------------------------------------------------|-----------------|--------------------|
