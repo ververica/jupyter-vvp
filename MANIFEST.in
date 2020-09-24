@@ -1,0 +1,8 @@
+include setup.py
+include README.md
+include jupytervvp/*.py
+include LICENSE
+exclude test/*
+exclude dev/*
+exclude docs/*
+exclude integration_test/*

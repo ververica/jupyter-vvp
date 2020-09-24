@@ -4,10 +4,10 @@ from unittest.mock import MagicMock
 import requests_mock
 
 from test.testmocks import ShellMock, ArgsMock
-from vvpmagics.deploymentoutput import DeploymentOutput
-from vvpmagics.deployments import NO_DEFAULT_DEPLOYMENT_MESSAGE, VvpConfigurationException, Deployments, \
+from jupytervvp.deploymentoutput import DeploymentOutput
+from jupytervvp.deployments import NO_DEFAULT_DEPLOYMENT_MESSAGE, VvpConfigurationException, Deployments, \
     VvpParameterException, VVP_DEFAULT_PARAMETERS_VARIABLE, DeploymentException
-from vvpmagics.vvpsession import VvpSession
+from jupytervvp.vvpsession import VvpSession
 
 
 def sql_execute_endpoint(namespace):

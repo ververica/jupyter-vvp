@@ -1,8 +1,8 @@
 import json
 
-from vvpmagics.deployments import Deployments
-from vvpmagics.jsonconversion import json_convert_to_dataframe
-from vvpmagics.variablesubstitution import VvpFormatter
+from jupytervvp.deployments import Deployments
+from jupytervvp.jsonconversion import json_convert_to_dataframe
+from jupytervvp.variablesubstitution import VvpFormatter
 
 
 def sql_execute_endpoint(namespace):

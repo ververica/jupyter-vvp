@@ -1,7 +1,7 @@
 import unittest
 import requests_mock
 
-from vvpmagics.httpsession import HttpSession
+from jupytervvp.httpsession import HttpSession
 
 
 @requests_mock.Mocker()

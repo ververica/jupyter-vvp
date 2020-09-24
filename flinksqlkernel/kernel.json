@@ -1,6 +1,6 @@
 {
  "argv": ["python", "-m",
-          "vvpmagics.flinksqlkernel", "-f",
+          "jupytervvp.flinksqlkernel", "-f",
           "{connection_file}"],
  "display_name": "FlinkSql",
  "name": "FlinkSql",

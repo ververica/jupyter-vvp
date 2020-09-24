@@ -3,11 +3,11 @@ from unittest.mock import patch
 
 import requests_mock
 
-from vvpmagics import flinksqlkernel
-from vvpmagics.deployments import Deployments
-from vvpmagics.flinksql import run_query, SqlSyntaxException, FlinkSqlRequestException
-from vvpmagics.flinksqlkernel import _do_flink_completion, calculate_text_length
-from vvpmagics.vvpsession import VvpSession
+from jupytervvp import flinksqlkernel
+from jupytervvp.deployments import Deployments
+from jupytervvp.flinksql import run_query, SqlSyntaxException, FlinkSqlRequestException
+from jupytervvp.flinksqlkernel import _do_flink_completion, calculate_text_length
+from jupytervvp.vvpsession import VvpSession
 
 
 def sql_execute_endpoint(namespace):

@@ -1,6 +1,6 @@
 import unittest
 
-from vvpmagics.variablesubstitution import VvpFormatter, NonExistentVariableException, VariableSyntaxException
+from jupytervvp.variablesubstitution import VvpFormatter, NonExistentVariableException, VariableSyntaxException
 
 
 class VariableSubstitutionTests(unittest.TestCase):

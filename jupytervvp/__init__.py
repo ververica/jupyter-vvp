@@ -5,6 +5,6 @@ from .vvpmagics import VvpMagics
 
 
 def load_ipython_extension(ipython):
-    print("Registering vvpmagics for vvp.")
+    print("Registering jupytervvp for vvp.")
     ipython.register_magics(VvpMagics)
 

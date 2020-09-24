@@ -1,7 +1,7 @@
 import unittest
 import requests_mock
 
-from vvpmagics.vvpsession import VvpSession, NotAuthorizedException
+from jupytervvp.vvpsession import VvpSession, NotAuthorizedException
 
 
 @requests_mock.Mocker()

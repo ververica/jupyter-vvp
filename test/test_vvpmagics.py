@@ -3,8 +3,8 @@ from unittest.mock import MagicMock
 
 import requests_mock
 
-from vvpmagics import VvpMagics
-from vvpmagics.vvpsession import VvpSession
+from jupytervvp import VvpMagics
+from jupytervvp.vvpsession import VvpSession
 
 
 @requests_mock.Mocker()

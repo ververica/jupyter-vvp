@@ -1,7 +1,7 @@
 import json
 
-from vvpmagics.deploymentapiconstants import sql_deployment_create_endpoint, deployment_defaults_endpoint
-from vvpmagics.deploymentoutput import DeploymentOutput
+from jupytervvp.deploymentapiconstants import sql_deployment_create_endpoint, deployment_defaults_endpoint
+from jupytervvp.deploymentoutput import DeploymentOutput
 
 NO_DEFAULT_DEPLOYMENT_MESSAGE = "No default deployment target found."
 VVP_DEFAULT_PARAMETERS_VARIABLE = "vvp_default_parameters"
