@@ -8,5 +8,8 @@ set -o xtrace
 cd "$(dirname "$0")"
 
 pip3 install -r requirements.txt
-twine check ../dist/*
-twine upload ../dist/*
+
+cd ../..
+python setup.py sdist
+twine check dist/*
+twine upload dist/*
