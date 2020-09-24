@@ -46,3 +46,8 @@ http://127.0.0.1:8888/?token=814a4f1ef6a10328f25e67aeb9e5d67e381aff0b2fc7ad2b
 
 In the notebook use `vvp-gateway` as hostname and `8080` as port.
 An example notebook can be found in the `work` folder.
+
+## Publishing
+
+The jupyter_vvp package is published to PyPi. The script `dev/script/publish.sh` will do everything required to publish the package. You will need to provide the PyPi username and password. See [VVP-2558](https://dataartisans.atlassian.net/browse/VVP-2558) for information on the account and whom to ask.
+In order to test the upload the TestPyPi index can be used, the command to upload is `twine upload --repository testpypi dist/*`. Note that there is a different password for the Test PyPi, the username is the same.
