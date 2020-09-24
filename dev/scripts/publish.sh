@@ -7,7 +7,7 @@ set -o xtrace
 
 cd "$(dirname "$0")"
 
-pip3 install -r requirements.txt
+pip install -r requirements.txt
 
 cd ../..
 python setup.py sdist
