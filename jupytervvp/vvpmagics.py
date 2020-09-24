@@ -5,13 +5,13 @@ from IPython.core.magic_arguments import magic_arguments, argument, parse_argstr
 from IPython import get_ipython
 import sys
 
-from vvpmagics.deployments import DeploymentException
-from vvpmagics.flinksql import run_query
-from vvpmagics.vvpsession import VvpSession
+from jupytervvp.deployments import DeploymentException
+from jupytervvp.flinksql import run_query
+from jupytervvp.vvpsession import VvpSession
 
 from pandas import DataFrame
 
-print('Loading vvp-vvpmagics.')
+print('Loading jupytervvp.')
 
 VVP_DEFAULT_PARAMETERS_VARIABLE = "vvp_deployment_parameters"
 

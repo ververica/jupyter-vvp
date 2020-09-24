@@ -7,8 +7,8 @@ from uuid import UUID
 
 from IPython.testing.globalipapp import get_ipython
 
-from vvpmagics import VvpMagics
-from vvpmagics.vvpsession import VvpSession
+from jupytervvp import VvpMagics
+from jupytervvp.vvpsession import VvpSession
 
 travis = os.environ.get('TRAVIS', False)
 

@@ -1,7 +1,7 @@
 import json
 import unittest
 
-from vvpmagics.jsonconversion import json_convert_to_dataframe
+from jupytervvp.jsonconversion import json_convert_to_dataframe
 
 
 class JsonTests(unittest.TestCase):

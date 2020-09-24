@@ -1,10 +1,10 @@
 from IPython.utils.tokenutil import line_at_cursor
 from ipykernel.ipkernel import IPythonKernel
 
-from vvpmagics.vvpsession import VvpSession, SessionException
-from vvpmagics.flinksql import complete_sql
+from jupytervvp.vvpsession import VvpSession, SessionException
+from jupytervvp.flinksql import complete_sql
 from IPython.core.magic_arguments import parse_argstring
-from vvpmagics import VvpMagics
+from jupytervvp import VvpMagics
 import json
 
 

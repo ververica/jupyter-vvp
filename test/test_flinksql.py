@@ -4,10 +4,10 @@ from unittest.mock import patch, MagicMock
 import requests_mock
 
 from test.testmocks import ArgsMock, ShellMock
-from vvpmagics.deployments import Deployments
-from vvpmagics.flinksql import run_query, SqlSyntaxException, FlinkSqlRequestException
-from vvpmagics.variablesubstitution import VvpFormatter
-from vvpmagics.vvpsession import VvpSession
+from jupytervvp.deployments import Deployments
+from jupytervvp.flinksql import run_query, SqlSyntaxException, FlinkSqlRequestException
+from jupytervvp.variablesubstitution import VvpFormatter
+from jupytervvp.vvpsession import VvpSession
 
 
 def sql_execute_endpoint(namespace):

@@ -5,7 +5,7 @@ import time
 from IPython.core.display import clear_output, display, HTML
 from ipywidgets import widgets, Layout
 
-from vvpmagics.deploymentapiconstants import all_deployment_states, sql_deployment_endpoint, deployment_states
+from jupytervvp.deploymentapiconstants import all_deployment_states, sql_deployment_endpoint, deployment_states
 
 
 def vvp_deployment_detail_endpoint(namespace, deployment_id):

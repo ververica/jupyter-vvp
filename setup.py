@@ -1,9 +1,9 @@
 from distutils.core import setup
 
 DESCRIPTION = "vvpMagics: Magics to connect to VVP"
-NAME = "vvpmagics"
+NAME = "jupyter_vvp"
 VERSION = '0.0.1'
-PACKAGES = ['vvpmagics']
+PACKAGES = ['jupytervvp']
 AUTHOR = "Ververica"
 AUTHOR_EMAIL = "platform@ververica.com"
 URL = 'https://github.com/dataArtisans/vvp-jupyter'
