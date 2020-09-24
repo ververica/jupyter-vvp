@@ -51,3 +51,20 @@ An example notebook can be found in the `work` folder.
 
 The jupyter_vvp package is published to PyPi. The script `dev/script/publish.sh` will do everything required to publish the package. You will need to provide the PyPi username and password. See [VVP-2558](https://dataartisans.atlassian.net/browse/VVP-2558) for information on the account and whom to ask.
 In order to test the upload the TestPyPi index can be used, the command to upload is `twine upload --repository testpypi dist/*`. Note that there is a different password for the Test PyPi, the username is the same.
+
+## Development
+
+### Testing
+
+Unit tests should be to test most functionality. 
+If integration with VVP needs to be tested, integration tests should be used.
+One of the integration tests executes example notebooks, so those should also be updated when any changes are made.
+The integration tests are currently not executed by travis, and only run locally.
+
+### Versioning
+
+Jupyter-VVP is versioned independently from VVP, compatibility with VVP versions should be indicated in the readme.
+Versioning follows the semantic versioning scheme, major.minor.patch.
+Major versions indicate bigger, possibly non-breaking, changes.
+Minor versions indicate non-breaking updates.
+Patch versions are only bugfix and stability updates.
