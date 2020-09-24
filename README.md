@@ -2,16 +2,20 @@
 
 [![Build Status](https://travis-ci.com/dataArtisans/vvp-jupyter.svg?token=RGozj1rgTPauwuugxzZx&branch=master)](https://travis-ci.com/dataArtisans/vvp-jupyter)
 
-Jupyter support for the Ververica Platform.
-This package contains magics to interact with a Ververica Platform installation, 
-in particular to connect to a Ververica Platform instance and run SQL commands.
-Furthermore, there is a custom kernel that provides SQL code completion inside the sql magics.
+This extension to Jupyter lets you write and execute Flink SQL statements right from your Jupyter notebooks. 
+It is backed by Ververica Platform's SQL REST API.
 
 ## Prerequisites
 
 In order to use the Jupyter magics, you will require access to an installation of the Ververica Platform.
 
 To set up Ververica Platform follow the instructions at https://docs.ververica.com/getting_started/index.html
+
+## Compatibility
+
+| Ververica Platform Version | Jupyter-VVP Version |
+|----------------------------|---------------------|
+| 2.3                        | 0.1.0               |
 
 ## Installation
 
@@ -20,7 +24,9 @@ The package can be installed from PyPi with
 pip3 install jupyter-vvp
 ```
 
-## Loading the extension
+## Usage
+
+### Loading the extension
 
 From within IPython (`ipython3`) or an IPython3 kernel in any local Jupyter instance,
 run
@@ -29,13 +35,15 @@ run
 ```
 to load the extension and register the magics.
 
-## Usage
+### Connecting to Ververica Platform
 
-In order to use the VVP Jupyter magics, you will first need to connect to a VVP instance.
+In order to use the Ververica Platform Jupyter magics, you will first need to connect to a Ververica Platform instance.
 The `%connect_vvp` magic can be used for that:
 ```
 %connect_vvp localhost --port 8080 --namespace default
 ```
+
+### SQL Statements
 
 This will set up your notebook to communicate with the Ververica Platform.
 We can test this by trying a DDL statement, e.g. to display all existing tables:
@@ -44,30 +52,34 @@ We can test this by trying a DDL statement, e.g. to display all existing tables:
 SHOW TABLES
 ```
 
-The `flink_sql` magic can of course also be used to send DML queries to the Ververica Platform:
+The `flink_sql` magic can, of course, also be used to execute DML statements via the Ververica Platform:
 ```
 %%flink_sql
-CREATE TABLE Orders (
-     order_id   BIGINT,
-     order_time TIMESTAMP(3),
-     price      DECIMAL(32, 2),
-     quantity   INT
- ) WITH (
-     'connector' = 'kafka',
-     'topic' = 'orders',
-     'properties.bootstrap.servers' = 'localhost:9092',
-     'properties.group.id' = 'orderGroup',
-     'format' = 'csv'
- )
+CREATE TEMPORARY TABLE my_source_table (
+id INT,
+data STRING,
+) WITH (
+'connector' = 'datagen'
+)
+
+CREATE TEMPORARY TABLE my_sink_table (
+data STRING
+) WITH (
+'connector' = 'blackhole'
+)
+
+INSERT INTO my_sink_table SELECT data FROM my_source_table
 ```
 
-## Examples
+### Examples
 
 A few example notebook can be found in the [example_notebooks folder](./example_notebooks)
 
-## Sessions
+## Advanced Usage
 
-A *session* corresponds to a connection to a Ververica Platform instance,
+### Sessions
+
+A connection to a Ververica Platform instance is represented by a *session*, 
 specifying its hostname and port,
 and an API token if required.
 The session has a name for convenient reference.
@@ -95,7 +107,14 @@ from vvpmagics import vvpsession
 vvpsession.VvpSession.get_sessions()
 ```
 
-### Using API Tokens
+When executing statements a session can be specified via:
+
+```
+%%flinksql mySession
+...
+```
+
+#### Using API Tokens
 
 - The argument `-k <API-Key>` (or `--key <API-Key>`) 
   will use the given value in `<API-Key>` as the API Key.
@@ -112,36 +131,7 @@ If no keys are specified, no API keys are used.
 %connect_vvp HOSTNAME -n default -s mySession -K
 ```
 
-## SQL Requests
-Example:
-```
-%%flink_sql 
-   ...:  CREATE TABLE Orders (
-   ...:       order_id   BIGINT,
-   ...:       order_time TIMESTAMP(3),
-   ...:       price      DECIMAL(32, 2),
-   ...:       quantity   INT
-   ...:   ) WITH (
-   ...:       'connector' = 'kafka',
-   ...:       'topic' = 'orders',
-   ...:       'properties.bootstrap.servers' = 'localhost:9092',
-   ...:       'properties.group.id' = 'orderGroup',
-   ...:       'format' = 'csv'
-   ...:   )
-```
-
-This will return the HTTP response body from the back end. 
-For more information about using Ververica Platform SQL refer to the [Ververica Platform documentation](https://docs.ververica.com/sql-eap/sql_development/index.html)
-If there is a `resultsTable` object then this will be returned as a Pandas Dataframe.
-
-A session can be specified via:
-
-```
-%%flinksql mySession
-...
-```
-
-## Substituting user variables
+### Substituting user variables
 
 User variables defined in the notebook can be referenced in `flink_sql` cells.
 To reference the variable, surround it with braces.
@@ -178,7 +168,7 @@ but note that double-brace placeholders may also be used (double-braced placehol
 for more information see the Flink configuration section below).
 
 
-## Setting deployment parameters
+### Setting deployment parameters
 Deployments of SQL INSERT jobs can be customised by setting parameters.
 The possible settings keys are listed in a parameters dictionary in the example notebook,
 and its use is shown there.
@@ -189,7 +179,7 @@ You may find the following documentation generally useful:
 - [Deployment Template settings](https://docs.ververica.com/user_guide/deployments/deployment_templates.html)
 - [Lifecycle Management settings](https://docs.ververica.com/user_guide/lifecycle_management/index.html)
 
-### Important parameters
+#### Important parameters
 
 Please find some frequently used parameters below:
 
@@ -201,7 +191,7 @@ Please find some frequently used parameters below:
 |`spec.restoreStrategy`                 | String: `"LATEST_STATE"`, `"LATEST_SAVEPOINT"`, or `"NONE"`.  | | [Link](https://docs.ververica.com/user_guide/lifecycle_management/index.html#restore-strategy) |
 |`spec.upgradeStrategy`                 | String: `"STATELESS"`, `"STATEFUL"`, or `"NONE"`.             | | [Link](https://docs.ververica.com/user_guide/lifecycle_management/index.html#upgrade-strategy) |
 
-### Flink Configuration
+#### Flink Configuration
 In the deployment settings,
 keys of the form 
 ```
@@ -225,26 +215,18 @@ e.g.:
 See [here](https://docs.ververica.com/administration/deployment_defaults.html#placeholders-in-flink-configuration)
 for further details on placeholders.
 
-
-## Further examples
-
-See the example notebooks:
-
-- [Connect to VVP](./example_notebooks/ConnectToVVP.test.ipynb)
-- [DDL and DML commands and queries](./example_notebooks/FlinkSql.test.ipynb)
-
-## Error messages
+### Error messages
 
 Both the `%connect_vvp` and the `%%flink_sql` magics support the `-d/--debug` flag
 to show full error messages.
-In case of error results from the VVP it will display the full JSON response.  
+In case of error results from the Ververica Platform it will display the full JSON response.  
 
-## Code completion
+### Code completion
 
-When using the FlinkSql kernel, SQL queries in a `%%flink_sql` cell will be completed with suggestions from VVP.
+When using the FlinkSql kernel, SQL queries in a `%%flink_sql` cell will be completed with suggestions from Ververica Platform.
 In order for code completion to work, a connect_vvp session needs to exist. 
-The default session will be used to communicate with VVP unless the another session is set for the `%%flink_sql` cell.
-If any problems occur in the communication with VVP, code completion will attempt to use the standard Jupyter completion.
+The default session will be used to communicate with Ververica Platform unless the another session is set for the `%%flink_sql` cell.
+If any problems occur in the communication with Ververica Platform, code completion will attempt to use the standard Jupyter completion.
 
 ![Code Completion](completion.gif)
 

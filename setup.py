@@ -1,10 +1,10 @@
 from setuptools import setup
 
-DESCRIPTION  = "Jupyter VVP: Magics to connect Jupyter to VVP"
-NAME         = "jupyter_vvp"
-VERSION      = '0.0.1'
-PACKAGES     = ['jupytervvp']
-AUTHOR       = "Ververica"
+DESCRIPTION = "Jupyter VVP: Flink SQL in Jupyter Notebooks via Ververica Platform"
+NAME = "jupyter_vvp"
+VERSION = '0.0.1'
+PACKAGES = ['jupytervvp']
+AUTHOR = "Ververica"
 AUTHOR_EMAIL = "platform@ververica.com"
 URL          = 'https://github.com/dataArtisans/vvp-jupyter'
 DOWNLOAD_URL = 'https://github.com/dataArtisans/vvp-jupyter'

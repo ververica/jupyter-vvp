@@ -30,22 +30,8 @@ python3 setup.py sdist
 ```
 docker build . --tag vvp-jupyter:latest
 ```
-This image can be run independently and used to connect to any running VVP instance.
+This image can be run independently and used to connect to any running Ververica Platform instance.
 The Docker image comes with the FlinkSql Kernel for code completion pre-installed.
-
-### Docker-compose with VVP
-Run docker compose to set the full vvp environment up:
-```
-docker-compose up vvp-gateway vvp-appmanager vvp-ui vvp-jupyter
-```
-
-To log into Jupyter, look into the docker compose output and find a line that looks like this:
-```
-http://127.0.0.1:8888/?token=814a4f1ef6a10328f25e67aeb9e5d67e381aff0b2fc7ad2b
-```
-
-In the notebook use `vvp-gateway` as hostname and `8080` as port.
-An example notebook can be found in the `work` folder.
 
 ## Publishing
 
@@ -56,14 +42,14 @@ In order to test the upload the TestPyPi index can be used, the command to uploa
 
 ### Testing
 
-Unit tests should be to test most functionality. 
-If integration with VVP needs to be tested, integration tests should be used.
+Unit tests should be used to test functionality whereever possible.
+If integration with Ververica Platform needs to be tested, integration tests should be used.
 One of the integration tests executes example notebooks, so those should also be updated when any changes are made.
 The integration tests are currently not executed by travis, and only run locally.
 
 ### Versioning
 
-Jupyter-VVP is versioned independently from VVP, compatibility with VVP versions should be indicated in the readme.
+Jupyter-VVP is versioned independently of Ververica Platform, compatibility with Ververica Platform versions should be indicated in the readme.
 Versioning follows the semantic versioning scheme, major.minor.patch.
 Major versions indicate bigger, possibly non-breaking, changes.
 Minor versions indicate non-breaking updates.
