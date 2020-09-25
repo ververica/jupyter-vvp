@@ -21,8 +21,13 @@ To set up Ververica Platform follow the instructions at https://docs.ververica.c
 
 The package can be installed from PyPi with 
 ```
-pip3 install jupyter_vvp
+pip install jupyter_vvp
 ```
+
+Jupyter VVP comes with a custom kernel that extends `ipykernel` with code-completion for SQL Code through Ververica Platform.
+In order to use the kernel you need to install it:
+- First locate the installation directory of the package: `pip show jupyter_vvp`
+- Go to the installation directory and install the kernel: `jupyter-kernelspec install jupytervvp/flinksqlkernel`
 
 ## Usage
 

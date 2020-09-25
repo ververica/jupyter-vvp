@@ -2,7 +2,7 @@ include setup.py
 include README.md
 include jupytervvp/*.py
 include LICENSE
-include flinksqlkernel/*
+include jupytervvp/flinksqlkernel/*
 exclude test/*
 exclude dev/*
 exclude docs/*

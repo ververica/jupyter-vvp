@@ -25,7 +25,7 @@ setup(name=NAME,
       license=LICENSE,
       packages=PACKAGES,
       include_package_data=True,
-      package_data={'jupytervvp':['flinksqlkernel/kernel.json']},
+      package_data={'jupytervvp':['jupytervvp/flinksqlkernel/kernel.json']},
       install_requires=[
           'ipython>=4.0.2',
           'ipykernel',

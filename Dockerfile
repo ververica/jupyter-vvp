@@ -2,7 +2,7 @@ FROM jupyter/scipy-notebook
 
 COPY dist/jupyter_vvp-0.0.1.tar.gz /tmp/
 COPY example_notebooks/FlinkSql.test.ipynb work/
-COPY flinksqlkernel /tmp/flinksqlkernel
+COPY jupytervvp/flinksqlkernel /tmp/flinksqlkernel
 
 RUN sed -i "s|localhost|vvp-gateway|g" work/FlinkSql.test.ipynb
 
