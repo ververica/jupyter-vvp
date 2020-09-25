@@ -36,7 +36,7 @@ class IntegrationTest(unittest.TestCase):
     def test_connect_notebook(self):
         notebook_path = os.path.dirname(__file__) + "/../example_notebooks/"
         files = [item for item in os.listdir(notebook_path) if os.path.isfile(os.path.join(notebook_path, item))]
-        notebooks = filter(lambda x: x.endswith("test.ipynb"), files)
+        notebooks = filter(lambda x: x.endswith(".ipynb"), files)
         for i, notebook in enumerate(notebooks, start=1):
             print("{}.: Running notebook '{}'.".format(i, notebook))
             nb, errors = run_notebook(os.path.join(notebook_path, notebook))
