@@ -21,7 +21,7 @@ To set up Ververica Platform follow the instructions at https://docs.ververica.c
 
 The package can be installed from PyPi with 
 ```
-pip3 install jupyter-vvp
+pip3 install jupyter_vvp
 ```
 
 ## Usage
@@ -31,7 +31,7 @@ pip3 install jupyter-vvp
 From within IPython (`ipython3`) or an IPython3 kernel in any local Jupyter instance,
 run
 ```
-%load_ext vvpmagics
+%load_ext jupytervpp
 ```
 to load the extension and register the magics.
 
@@ -57,17 +57,15 @@ The `flink_sql` magic can, of course, also be used to execute DML statements via
 %%flink_sql
 CREATE TEMPORARY TABLE my_source_table (
 id INT,
-data STRING,
+data STRING
 ) WITH (
 'connector' = 'datagen'
-)
-
+);
 CREATE TEMPORARY TABLE my_sink_table (
 data STRING
 ) WITH (
 'connector' = 'blackhole'
-)
-
+);
 INSERT INTO my_sink_table SELECT data FROM my_source_table
 ```
 
