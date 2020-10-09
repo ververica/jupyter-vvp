@@ -24,6 +24,7 @@ ddl_responses = [
 dml_responses = [
     "VALIDATION_RESULT_VALID_INSERT_QUERY"
 ]
+dql_response = "VALIDATION_RESULT_VALID_SELECT_QUERY"
 sql_validate_possible_responses = \
     ddl_responses + \
     dml_responses + \
@@ -31,7 +32,7 @@ sql_validate_possible_responses = \
         "VALIDATION_RESULT_INVALID",
         "VALIDATION_RESULT_INVALID_QUERY",
         "VALIDATION_RESULT_UNSUPPORTED_QUERY",
-        "VALIDATION_RESULT_VALID_SELECT_QUERY"
+        dql_response
     ]
 
 
@@ -47,23 +48,32 @@ def run_query(session, raw_cell, shell, args):
     cell = VvpFormatter(raw_cell, shell.user_ns).substitute_user_variables()
     validation_response = _validate_sql(cell, session)
     if validation_response.status_code != 200:
-        raise FlinkSqlRequestException("Bad HTTP request, return code {}".format(validation_response.status_code),
-                                       sql=cell)
+        raise FlinkSqlRequestException(
+            "Bad HTTP request, return code {}".format(validation_response.status_code),
+            sql=cell)
     json_response = json.loads(validation_response.text)
+
     if is_invalid_request(json_response):
-        raise FlinkSqlRequestException("Unknown validation result: {}".format(json_response['validationResult']),
-                                       sql=cell)
+        validation_result = json_response["validationResult"]
+        message = "Unknown validation result: {}".format(validation_result)
+        raise FlinkSqlRequestException(message, sql=cell)
+
     if is_supported_in(ddl_responses, json_response):
         execute_command_response = _execute_sql(cell, session)
         json_data = json.loads(execute_command_response.text)
         return json_convert_to_dataframe(json_data)
+
     if is_supported_in(dml_responses, json_response):
         return Deployments.make_deployment(cell, session, shell, args)
 
+    if json_response["validationResult"] == dql_response:
+        error_message = "SELECT statements are currently not supported."
     else:
-        error_message = json_response['errorDetails']['message']
-        raise SqlSyntaxException("Invalid or unsupported SQL statement: {}"
-                                 .format(error_message), sql=cell, response=validation_response)
+        error_message = json_response["errorDetails"]["message"]
+
+    raise SqlSyntaxException(
+        "Invalid or unsupported SQL statement: {}"
+        .format(error_message), sql=cell, response=validation_response)
 
 
 def _validate_sql(cell, session):

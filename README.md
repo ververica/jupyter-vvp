@@ -45,7 +45,7 @@ to load the extension and register the magics.
 In order to use the Ververica Platform Jupyter magics, you will first need to connect to a Ververica Platform instance.
 The `%connect_vvp` magic can be used for that:
 ```
-%connect_vvp localhost --port 8080 --namespace default
+%connect_vvp localhost --port 8080 --namespace default -s <your-session-name>
 ```
 
 ### SQL Statements

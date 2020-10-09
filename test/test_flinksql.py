@@ -187,6 +187,21 @@ class FlinkSqlTests(unittest.TestCase):
             run_query(self.session, cell, shell, None)
             assert raised_exception.exception.sql == cell
 
+    def test_flink_sql_throws_if_select_query(self, requests_mock):
+        self._setUpSession(requests_mock)
+
+        requests_mock.request(method='post',
+                              url='http://localhost:8080{}'.format(sql_validate_endpoint(self.namespace)),
+                              text=""" { "validationResult": "VALIDATION_RESULT_VALID_SELECT_QUERY" } """,
+                              status_code=200)
+
+        cell = """SOME SQL COMMAND"""
+        shell = ShellMock({})
+
+        with self.assertRaises(SqlSyntaxException) as raised_exception:
+            VvpFormatter.substitute_user_variables = MagicMock(return_value=cell)
+            run_query(self.session, cell, shell, None)
+            assert raised_exception.exception.sql == cell
 
 if __name__ == '__main__':
     unittest.main()

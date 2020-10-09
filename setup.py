@@ -28,6 +28,8 @@ setup(name=NAME,
       package_data={'jupytervvp':['jupytervvp/flinksqlkernel/kernel.json']},
       install_requires=[
           'ipython>=4.0.2',
+          'ipywidgets',
+          'pandas',
           'ipykernel',
           'requests'
       ])
