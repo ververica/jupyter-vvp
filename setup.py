@@ -2,7 +2,7 @@ from setuptools import setup
 
 DESCRIPTION = "Jupyter VVP: Flink SQL in Jupyter Notebooks via Ververica Platform"
 NAME = "jupyter_vvp"
-VERSION = '0.0.1'
+VERSION = '0.1.0'
 PACKAGES = ['jupytervvp']
 AUTHOR = "Ververica"
 AUTHOR_EMAIL = "platform@ververica.com"
