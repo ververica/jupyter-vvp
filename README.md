@@ -1,6 +1,6 @@
 # jupyter-vvp
 
-[![Build Status](https://travis-ci.com/dataArtisans/vvp-jupyter.svg?token=RGozj1rgTPauwuugxzZx&branch=master)](https://travis-ci.com/dataArtisans/vvp-jupyter)
+[![Build Status](https://travis-ci.com/ververica/jupyter-vvp.svg?token=oVi8ssiCvCkv55DAek4y&branch=master)](https://travis-ci.com/ververica/jupyter-vvp)
 
 This extension to Jupyter lets you write and execute Flink SQL statements right from your Jupyter notebooks. 
 It is backed by Ververica Platform's SQL REST API.
