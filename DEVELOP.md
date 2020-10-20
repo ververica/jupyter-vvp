@@ -35,7 +35,7 @@ The Docker image comes with the FlinkSql Kernel for code completion pre-installe
 
 ## Publishing
 
-The jupyter-vvp package is published to PyPi. The script `dev/script/publish.sh` will do everything required to publish the package. You will need to provide the PyPi username and password.
+The jupyter-vvp package is published to PyPi. The script `dev/scripts/publish.sh` will do everything required to publish the package. You will need to provide the PyPi username and password.
 
 In order to test the upload the TestPyPi index can be used, the command to upload is `twine upload --repository testpypi dist/*`. Note that there is a different password for the Test PyPi, the username is the same.
 
