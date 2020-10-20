@@ -246,5 +246,5 @@ will show help texts for the magics.
 
 ## Bugs
 
-Report an issue at https://github.com/dataArtisans/vvp-jupyter/issues
+Report an issue at https://github.com/ververica/vvp-jupyter/issues
 
