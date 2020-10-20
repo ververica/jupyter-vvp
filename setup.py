@@ -1,13 +1,13 @@
 from setuptools import setup
 
 DESCRIPTION = "Jupyter VVP: Flink SQL in Jupyter Notebooks via Ververica Platform"
-NAME = "jupyter_vvp"
+NAME = "jupyter-vvp"
 VERSION = '0.1.0'
 PACKAGES = ['jupytervvp']
 AUTHOR = "Ververica"
 AUTHOR_EMAIL = "platform@ververica.com"
-URL          = 'https://github.com/dataArtisans/vvp-jupyter'
-DOWNLOAD_URL = 'https://github.com/dataArtisans/vvp-jupyter'
+URL          = 'https://github.com/ververica/jupyter-vvp'
+DOWNLOAD_URL = 'https://github.com/ververica/jupyter-vvp'
 LICENSE      = 'Apache License 2.0'
 
 with open("README.md", "r") as fh:

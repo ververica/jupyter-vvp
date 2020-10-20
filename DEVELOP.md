@@ -1,6 +1,6 @@
 # vvp-magics
 
-[![Build Status](https://travis-ci.com/dataArtisans/vvp-jupyter.svg?token=RGozj1rgTPauwuugxzZx&branch=master)](https://travis-ci.com/dataArtisans/vvp-jupyter)
+[![Build Status](https://travis-ci.com/ververica/jupyter-vvp.svg?token=RGozj1rgTPauwuugxzZx&branch=master)](https://travis-ci.com/ververica/jupyter-vvp)
 
 Jupyter support for Ververica Platform using IPython Magics commands.
 
@@ -28,14 +28,15 @@ python3 setup.py sdist
 ```
 2. Then create the Docker image:
 ```
-docker build . --tag vvp-jupyter:latest
+docker build . --tag jupyter-vvp:latest
 ```
 This image can be run independently and used to connect to any running Ververica Platform instance.
 The Docker image comes with the FlinkSql Kernel for code completion pre-installed.
 
 ## Publishing
 
-The jupyter_vvp package is published to PyPi. The script `dev/script/publish.sh` will do everything required to publish the package. You will need to provide the PyPi username and password. See [VVP-2558](https://dataartisans.atlassian.net/browse/VVP-2558) for information on the account and whom to ask.
+The jupyter-vvp package is published to PyPi. The script `dev/scripts/publish.sh` will do everything required to publish the package. You will need to provide the PyPi username and password.
+
 In order to test the upload the TestPyPi index can be used, the command to upload is `twine upload --repository testpypi dist/*`. Note that there is a different password for the Test PyPi, the username is the same.
 
 ## Development
@@ -51,6 +52,6 @@ The integration tests are currently not executed by travis, and only run locally
 
 Jupyter-VVP is versioned independently of Ververica Platform, compatibility with Ververica Platform versions should be indicated in the readme.
 Versioning follows the semantic versioning scheme, major.minor.patch.
-Major versions indicate bigger, possibly non-breaking, changes.
+Major versions indicate bigger, possibly breaking, changes.
 Minor versions indicate non-breaking updates.
 Patch versions are only bugfix and stability updates.
