@@ -36,7 +36,7 @@ In order to use the kernel you need to install it:
 From within IPython (`ipython3`) or an IPython3 kernel in any local Jupyter instance,
 run
 ```
-%load_ext jupytervpp
+%load_ext jupytervvp
 ```
 to load the extension and register the magics.
 
