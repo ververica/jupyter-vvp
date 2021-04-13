@@ -46,7 +46,20 @@ In order to test the upload the TestPyPi index can be used, the command to uploa
 Unit tests should be used to test functionality whereever possible.
 If integration with Ververica Platform needs to be tested, integration tests should be used.
 One of the integration tests executes example notebooks, so those should also be updated when any changes are made.
-The integration tests are currently not executed by travis, and only run locally.
+The integration tests are currently not executed by the CI, and only run locally.
+
+To run the unittests and the integration tests:
+```
+python -m unittests
+```
+
+To only run the unittests (in the case of no available Ververica Platform to
+integrate against), export the `SKIP_INTEGRATION_TESTS` environment variable:
+```
+export SKIP_INTEGRATION_TESTS=1
+python -m unittests
+```
+
 
 ### Versioning
 

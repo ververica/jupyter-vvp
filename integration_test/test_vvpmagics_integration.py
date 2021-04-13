@@ -10,13 +10,14 @@ from IPython.testing.globalipapp import get_ipython
 from jupytervvp import VvpMagics
 from jupytervvp.vvpsession import VvpSession
 
-travis = os.environ.get('TRAVIS', False)
+SKIP_INTEGRATION_TESTS = os.environ.get('SKIP_INTEGRATION_TESTS', False)
 
 
 def random_string():
     return ''.join(random.choices(string.digits + "abcdef", k=4))
 
 
+@unittest.skipIf(SKIP_INTEGRATION_TESTS, 'Requires locally running VVP backend.')
 class VvpMagicsTestsAgainstBackend(unittest.TestCase):
     ipython_session = None
 
@@ -29,7 +30,6 @@ class VvpMagicsTestsAgainstBackend(unittest.TestCase):
         VvpSession._sessions = {}
         VvpSession.default_session_name = None
 
-    @unittest.skipIf(travis, 'Requires locally running VVP backend.')
     def test_flink_sql_executes_show_tables(self):
         magics = VvpMagics()
         connect_magic_line = "localhost -n default -p 8280 -s session1"
@@ -41,7 +41,6 @@ class VvpMagicsTestsAgainstBackend(unittest.TestCase):
         response = magics.flink_sql(sql_magic_line, sql_magic_cell)
         assert "table name" in response.columns
 
-    @unittest.skipIf(travis, 'Requires locally running VVP backend.')
     def test_flink_sql_executes_create_table(self):
         magics = VvpMagics()
         connect_magic_line = "localhost -n default -p 8280 -s session1"
@@ -64,7 +63,6 @@ WITH (
         response = magics.flink_sql(sql_magic_line, sql_magic_cell)
         assert response['result'] == 'RESULT_SUCCESS'
 
-    @unittest.skipIf(travis, 'Requires locally running VVP backend.')
     def test_flink_sql_executes_insert(self):
         magics = VvpMagics()
         connect_magic_line = "localhost -n default -p 8280 -s session1"
