@@ -4,7 +4,7 @@ import unittest
 import nbformat
 from nbconvert.preprocessors import ExecutePreprocessor
 
-travis = os.environ.get('TRAVIS', False)
+SKIP_INTEGRATION_TESTS = os.environ.get('SKIP_INTEGRATION_TESTS', False)
 
 
 def run_notebook(notebook_path):
@@ -30,9 +30,9 @@ def run_notebook(notebook_path):
     return nb, errors
 
 
+@unittest.skipIf(SKIP_INTEGRATION_TESTS, 'Requires locally running VVP backend.')
 class IntegrationTest(unittest.TestCase):
 
-    @unittest.skipIf(travis, 'Requires locally running VVP backend.')
     def test_connect_notebook(self):
         notebook_path = os.path.dirname(__file__) + "/../example_notebooks/"
         files = [item for item in os.listdir(notebook_path) if os.path.isfile(os.path.join(notebook_path, item))]
