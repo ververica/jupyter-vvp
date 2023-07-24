@@ -1,4 +1,6 @@
 import json
+import random
+import string
 
 from jupytervvp.deploymentapiconstants import sql_deployment_create_endpoint, deployment_defaults_endpoint
 from jupytervvp.deploymentoutput import DeploymentOutput
@@ -26,6 +28,8 @@ class Deployments:
         endpoint = sql_deployment_create_endpoint(session.get_namespace())
         body = cls._build_deployment_request(cell, session, parameters)
         deployment_creation_response = session.submit_post_request(endpoint=endpoint, requestbody=json.dumps(body))
+        # print("Request body: " + str(body), file=open('dbg.log', 'a')) # dbg
+        # print("Response body: " + str(deployment_creation_response.text), file=open('dbg.log', 'a')) # dbg
         if deployment_creation_response.status_code == 201:
             deployment_id = json.loads(deployment_creation_response.text)['metadata']['id']
             DeploymentOutput(deployment_id, session).show_output()
@@ -46,10 +50,10 @@ class Deployments:
     def _get_deployment_target(session):
         endpoint = deployment_defaults_endpoint(session.get_namespace())
         response = session.execute_get_request(endpoint)
-        deployment_target_id = json.loads(response.text)["spec"].get("deploymentTargetId")
-        if deployment_target_id is None:
+        deployment_target_name = json.loads(response.text)["spec"].get("deploymentTargetName")
+        if deployment_target_name is None:
             raise VvpConfigurationException(NO_DEFAULT_DEPLOYMENT_MESSAGE)
-        return deployment_target_id
+        return deployment_target_name
 
     @classmethod
     def _build_deployment_request(cls, cell, session, override_parameters):
@@ -69,8 +73,8 @@ class Deployments:
                 }
             }
         }
-        base_body['metadata']['name'] = cell
-        base_body['spec']['deploymentTargetId'] = cls._get_deployment_target(session)
+        base_body['metadata']['name'] = "jupyter-" + cls.get_random_suffix()
+        base_body['spec']['deploymentTargetName'] = cls._get_deployment_target(session)
         cls.set_values_from_flat_parameters(base_body, REQUIRED_DEFAULT_PARAMETERS)
 
         if override_parameters is not None:
@@ -137,6 +141,10 @@ class Deployments:
             parameters_variable = args.parameters
         return shell.user_ns.get(parameters_variable, None)
 
+    @staticmethod
+    def get_random_suffix():
+        characters = string.ascii_lowercase + string.digits
+        return ''.join(random.choice(characters) for _ in range(6))
 
 class DeploymentException(Exception):
     def __init__(self, message="", sql=None, response=None):
